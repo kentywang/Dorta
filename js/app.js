@@ -99,8 +99,9 @@ var bulletSpeed = 500;
 var enemySpeed = 50;
 
 // Physics
-var player1Jump = -300;
+var player1Jump = 300;
 var gravityAccelerationY = 800;
+var gravityAccelerationX = 20;
 
 
 // Update game objects
@@ -113,13 +114,13 @@ function update(dt) {
 
     // It gets harder over time by adding enemies using this
     // equation: 1-.993^gameTime
-    if(Math.random() < .01) {
-        enemies.push({
-            pos: [canvas.width,
-                  Math.random() * canvas.height - 32],
-            sprite: new Sprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12,28], 6, [0, 1, 2, 3])
-        });
-    }
+    // if(Math.random() < .01) {
+    //     enemies.push({
+    //         pos: [canvas.width,
+    //               Math.random() * canvas.height - 32],
+    //         sprite: new Sprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12,28], 6, [0, 1, 2, 3])
+    //     });
+    // }
 
     checkCollisions();
 
@@ -129,7 +130,7 @@ function update(dt) {
 
 function handleInput(dt) {
     if(player1.sprite.state !== "jump"){ // TEMP+RARILY EDITED
-        player1.sprite.state = "idle";
+        // player1.sprite.state = "idle";
 
         if(input.isDown('DOWN')) {
             // player1.sprite.state = "walk";
@@ -138,21 +139,19 @@ function handleInput(dt) {
 
         else if(input.isDown('SPACE') && input.isDown('LEFT')) {
             player1.sprite.state = "jump";
-            player1.velocityY = player1Jump;
-            player1.velocityX = player1Jump/4;
-            //player1.pos[0] -= player1Speed * dt;
+            player1.velocityY = -player1Jump;
+            player1.velocityX = -player1Jump/4;
         }
 
         else if(input.isDown('SPACE') && input.isDown('RIGHT')) {
             player1.sprite.state = "jump";
-            player1.velocityY = player1Jump;
-            player1.velocityX = -player1Jump/4;
-            //player1.pos[0] += player1Speed * dt;
+            player1.velocityY = -player1Jump;
+            player1.velocityX = player1Jump/4;
         }
 
         else if(input.isDown('SPACE')) {
             player1.sprite.state = "jump";
-            player1.velocityY = player1Jump;
+            player1.velocityY = -player1Jump;
         }
 
         else if(input.isDown('LEFT')) {
@@ -165,7 +164,56 @@ function handleInput(dt) {
             player1.pos[0] += player1Speed * dt;
         }
     }
-        console.log(player1.sprite.state)
+
+    if(player1.sprite.state === "jump"){ // these are midair actions
+
+        if(input.isDown('DOWN')) {
+            // player1.sprite.state = "walk";
+            // player1.pos[1] += player1Speed * dt;
+        }
+
+        else if(input.isDown('SPACE') && input.isDown('LEFT')) {
+            if(player1.velocityX <= 0){
+                player1.velocityX -= player1Jump /4 * dt;
+            }
+            if(player1.velocityX > 0){
+                player1.velocityX -= player1Jump /8 * dt;
+            }
+        }
+
+        else if(input.isDown('SPACE') && input.isDown('RIGHT')) {
+            if(player1.velocityX < 0){
+                player1.velocityX += player1Jump /8 * dt;
+            }
+            if(player1.velocityX >= 0){
+                player1.velocityX += player1Jump /4 * dt;
+            }
+        }
+
+        else if(input.isDown('SPACE')) {
+            // player1.sprite.state = "jump";
+            // player1.velocityY = player1Jump;
+        }
+
+        else if(input.isDown('LEFT')) {
+            if(player1.velocityX <= 0){
+                player1.velocityX -= player1Jump /4 * dt;
+            }
+            if(player1.velocityX > 0){
+                player1.velocityX -= player1Jump /8 * dt;
+            }
+        }
+
+        else if(input.isDown('RIGHT')) {
+            if(player1.velocityX < 0){
+                player1.velocityX += player1Jump /8 * dt;
+            }
+            if(player1.velocityX >= 0){
+                player1.velocityX += player1Jump /4 * dt;
+            }
+        }
+    }
+      //  console.log(player1.sprite.state)
 
     // if(input.isDown('UP') &&
     //    !isGameOver &&
@@ -189,12 +237,18 @@ function handleInput(dt) {
 
 function processPhysics(dt){
     player1.velocityY += gravityAccelerationY * dt;
+
+    if(player1.velocityX < 0){
+        player1.velocityX += gravityAccelerationX * dt;
+    }
+    if(player1.velocityX > 0){
+        player1.velocityX -= gravityAccelerationX * dt;
+    }
+
     player1.pos[1] += player1.velocityY * dt;
     player1.pos[0] += player1.velocityX * dt;
-    // if (player1.pos[1] > 0) {
-    //     positionY = 0; // assuming the ground is at height 0
-    //     velocityY = 0;
-    // }
+    
+    //console.log(player1.velocityX);
 }
 
 function updateEntities(dt) {
