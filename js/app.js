@@ -64,6 +64,7 @@ function init() {
 
 resources.load([
     'img/cat.png',
+    'img/cat2.png',
     'img/parallax-forest-lights.png',
     'img/parallax-forest-back-trees.png',
     'img/parallax-forest-middle-trees.png',
@@ -90,7 +91,9 @@ var player1 = {
     velocityX: 0,
     sprite: new Sprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12, 28], normalSpeed, [0, 1, 2, 3]),
     lastJump: Date.now(),
-    lastLand: Date.now()
+    lastLand: Date.now(),
+    lastShot: Date.now(),
+    direction: 'RIGHT'
 };
 
 var bullets = [];
@@ -125,7 +128,7 @@ function update(dt) {
     //     });
     // }
 
-    checkCollisions();
+    checkCollisions(dt);
 
     scoreEl.innerHTML = score;
 };
@@ -134,12 +137,7 @@ function update(dt) {
 function handleInput(dt) {
     switch(player1.sprite.state){
         case("idle"):
-            if(input.isDown('DOWN')) {
-                // player1.sprite.state = "walk";
-                // player1.pos[1] += player1Speed * dt;
-            }
-
-            else if(input.isDown('SPACE') && input.isDown('LEFT')) {
+            if(input.isDown('SPACE') && input.isDown('LEFT')) {
                 if(Date.now() - player1.lastLand < 250){ break;}
                 player1.sprite.state = "jump";
                 player1.velocityY = -player1Jump;
@@ -162,6 +160,44 @@ function handleInput(dt) {
                 player1.lastJump = Date.now();
             }
 
+            else if(input.isDown('Q') && input.isDown('UP')) {
+                player1.sprite.state = "uppercut";
+                player1.velocityY = -player1Jump /1.2;
+
+                if(player1.direction === "RIGHT"){
+                    player1.velocityX = player1Jump /5;
+                }
+                else{   
+                    player1.velocityX = -player1Jump /5;
+                }
+                player1.lastJump = Date.now();
+            }
+
+            // else if(input.isDown('Q') && input.isDown(player1.direction)) {
+            //         player1.sprite.state = "kick";
+
+            //         if(player1.direction === "RIGHT"){
+            //             player1.velocityX = player1Jump /3;
+            //         }
+            //         else{   
+            //             player1.velocityX = -player1Jump /3;
+            //         }
+            // }
+            
+
+            else if(input.isDown('Q')) {
+                player1.sprite.state = "punch";
+            }
+
+            else if(input.isDown('W')) {
+                //if(Date.now() - player1.lastShot < 2500){ break;}
+
+                player1.sprite.state = "supershot";
+                //player1.sprite.resetFrame = true;
+
+                //player1.lastShot = Date.now();
+            }
+            
             else if(input.isDown('LEFT')) {
                 player1.sprite.state = "walk";
                 player1.pos[0] -= player1Speed * dt;    
@@ -171,14 +207,16 @@ function handleInput(dt) {
                 player1.sprite.state = "walk";
                 player1.pos[0] += player1Speed * dt;
             }
-            break;
-        case("jump"):   // these are midair actions
-            if(input.isDown('DOWN')) {
-                // player1.sprite.state = "walk";
-                // player1.pos[1] += player1Speed * dt;
+
+            else if(input.isDown('DOWN')) {
+                player1.sprite.state = "crouch";
             }
 
-            else if(input.isDown('SPACE') && input.isDown('LEFT')) {
+
+
+            break;
+        case("jump"):   // these are midair actions
+            if(input.isDown('SPACE') && input.isDown('LEFT')) {
                 if(player1.velocityX <= 0){
                     player1.velocityX -= player1Jump /4 * dt;
                 }
@@ -188,9 +226,9 @@ function handleInput(dt) {
 
                 if(Date.now() - player1.lastJump > 250){
                     player1.sprite.state = "jump2";
-                    player1.velocityY = -player1Jump / 1.2;
+                    player1.velocityY = -player1Jump /1.2;
                     if(player1.velocityX > 0){
-                        player1.velocityX = -player1Jump/6
+                        player1.velocityX = -player1Jump/4;
                     }
                 }
             }
@@ -205,9 +243,9 @@ function handleInput(dt) {
 
                 if(Date.now() - player1.lastJump > 250){
                     player1.sprite.state = "jump2";
-                    player1.velocityY = -player1Jump / 1.2;
+                    player1.velocityY = -player1Jump /1.2;
                     if(player1.velocityX < 0){
-                        player1.velocityX = player1Jump/6
+                        player1.velocityX = player1Jump/4;
                     }
                 }
             }
@@ -215,8 +253,44 @@ function handleInput(dt) {
             else if(input.isDown('SPACE')) {
                 if(Date.now() - player1.lastJump > 250){
                     player1.sprite.state = "jump2";
-                    player1.velocityY = -player1Jump / 1.2;
+                    player1.velocityY = -player1Jump /1.2;
                 }
+            }
+
+            else if(input.isDown('Q') && input.isDown(player1.direction)) {
+                player1.sprite.state = "sidekick";
+                
+                if(player1.direction === "RIGHT"){
+                    player1.velocityX = player1Jump /2;
+                }
+                else{   
+                    player1.velocityX = -player1Jump /2;
+                }
+
+                player1.velocityY = player1Jump /3;
+            }
+
+            else if(input.isDown('Q') && input.isDown('DOWN')) {
+                    player1.sprite.state = "downkick";
+                    player1.velocityX = 0;
+                    player1.velocityY = player1Jump /1.5;
+            }
+
+            else if(input.isDown('Q') && input.isDown('UP')) {
+                player1.sprite.state = "uppercut";
+                player1.velocityY = -player1Jump /1.2;
+
+                if(player1.direction === "RIGHT"){
+                    player1.velocityX = player1Jump /5;
+                }
+                else{   
+                    player1.velocityX = -player1Jump /5;
+                }
+                player1.lastJump = Date.now();
+            }
+
+            else if(input.isDown('Q')) {
+                    player1.sprite.state = "airkick";
             }
 
             else if(input.isDown('LEFT')) {
@@ -238,12 +312,7 @@ function handleInput(dt) {
             }
             break;
         case("jump2"):   // these are midair actions
-            if(input.isDown('DOWN')) {
-                // player1.sprite.state = "walk";
-                // player1.pos[1] += player1Speed * dt;
-            }
-
-            else if(input.isDown('SPACE') && input.isDown('LEFT')) {
+             if(input.isDown('SPACE') && input.isDown('LEFT')) {
                 if(player1.velocityX <= 0){
                     player1.velocityX -= player1Jump /4 * dt;
                 }
@@ -261,11 +330,46 @@ function handleInput(dt) {
                 }
             }
 
-            else if(input.isDown('SPACE')) {
-                // if(Date.now() - player1.lastJump > 300){
-                //     player1.sprite.state = "jump2";
-                //     player1.velocityY = -player1Jump / 1.2;
-                // }
+            else if(input.isDown('Q') && input.isDown(player1.direction)) {
+                player1.sprite.state = "sidekick";
+                
+                if(player1.direction === "RIGHT"){
+                    player1.velocityX = player1Jump /2;
+                }
+                else{   
+                    player1.velocityX = -player1Jump /2;
+                }
+
+                player1.velocityY = player1Jump /3;
+            }
+
+            else if(input.isDown('Q') && input.isDown('DOWN')) {
+                    player1.sprite.state = "downkick";
+                    player1.velocityX = 0;
+                    player1.velocityY = player1Jump /1.5;
+            }
+
+            else if(input.isDown('Q') && input.isDown('UP')) {
+                player1.sprite.state = "uppercut";
+                player1.velocityY = -player1Jump /1.2;
+
+                if(player1.direction === "RIGHT"){
+                    player1.velocityX = player1Jump /5;
+                }
+                else{   
+                    player1.velocityX = -player1Jump /5;
+                }
+
+                player1.lastJump = Date.now();
+            }
+
+            else if(input.isDown('Q')) {
+                    player1.sprite.state = "airkick";
+            }
+            
+            else if(input.isDown('DOWN')) {
+                // player1.sprite.state = "walk";
+                // player1.pos[1] += player1Speed * dt;
             }
 
             else if(input.isDown('LEFT')) {
@@ -289,7 +393,7 @@ function handleInput(dt) {
         default:
             break;
     }
-      //  console.log(player1.sprite.state)
+    //console.log(player1.sprite.state)
 
     // if(input.isDown('UP') &&
     //    !isGameOver &&
@@ -387,9 +491,9 @@ function boxCollides(pos, size, pos2, size2) {
                     pos2[0], pos2[1],
                     pos2[0] + size2[0], pos2[1] + size2[1]);
 }
-//var f= false
-function checkCollisions() {
-    checkPlayerBounds();
+
+function checkCollisions(dt) {
+    checkPlayerBounds(dt);
     
     // Run collision detection for all enemies and bullets
     // Factor in hitbox size
@@ -436,7 +540,7 @@ function checkCollisions() {
     }
 }
 
-function checkPlayerBounds() {
+function checkPlayerBounds(dt) {
     // Check side bounds (enforce at hitbox)
     if(player1.pos[0]  < - player1.sprite.boxpos[0]) {
         player1.velocityX = 0;  // may want to change this to get bouncing
@@ -454,7 +558,16 @@ function checkPlayerBounds() {
     }
     else if(player1.pos[1] > canvas.height - player1.sprite.boxpos[1] - player1.sprite.boxsize[1]) {
         player1.velocityY = 0;
-        player1.velocityX = 0;
+        //player1.velocityX = 0;    // no sliding
+
+        // sliding physics
+        if(player1.velocityX < 0){
+            player1.velocityX += gravityAccelerationX * 30 * dt;
+        }
+        if(player1.velocityX > 0){
+            player1.velocityX -= gravityAccelerationX * 30 * dt;
+        }
+
         player1.sprite.speed = normalSpeed;
         player1.sprite.state = "idle";
         player1.pos[1] = canvas.height - player1.sprite.boxpos[1] - player1.sprite.boxsize[1];
