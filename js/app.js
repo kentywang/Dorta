@@ -80,7 +80,8 @@ resources.onReady(init);
 var playerSpeed = 70;
 var normalSpeed = 6;    // frames per second of sprite
 var shotSpeed = 140;
-var enemySpeed = 50;
+// var enemySpeed = 50;
+var invulnerableTime = 200;
 
 // Cooldowns
 var supershotCd = 1.5 * 1000;
@@ -94,9 +95,25 @@ var gravityAccelerationY = 800;
 var gravityAccelerationX = 20;
 var groundHeight = 5;
 
+// Damage mechanics
+function dmg(sprite){
+        switch(sprite.state){
+            case ("sidekick"):
+                this.health -= 15;
+                this.capacity += 30;
+                break;
+            default:
+                break;
+        }
+        this.invulnerable = true;
+        this.sprite.state = "hurt";
+    }
+
 // Game state
 var player1 = {
     who: 1,
+    health: 100,
+    capacity: 100,
     pos: [0, 0],
     velocityY: 0,
     velocityX: 0,
@@ -115,11 +132,15 @@ var player1 = {
         BASIC: "Q",
         SPECIAL: "W",
         ULTI: "E"
-    }
+    },
+    damaged: dmg,
+    invulnerable: false
 };
 
 var player2 = {
     who: 2,
+    health: 100,
+    capacity: 100,
     pos: [0, 0],
     velocityY: 0,
     velocityX: 0,
@@ -138,7 +159,9 @@ var player2 = {
         BASIC: "1",
         SPECIAL: "2",
         ULTI: "3"
-    }
+    },
+    damaged: dmg,
+    invulnerable: false
 };
 
 var players = [player1, player2];
@@ -150,8 +173,10 @@ var isGameOver;
 var terrainPattern;
 
 // The score
-var score = 0;
-var scoreEl = document.getElementById('score');
+var oneHP = document.getElementById('one-hp');
+var oneCP = document.getElementById('one-cp');
+var twoHP = document.getElementById('two-hp');
+var twoCP = document.getElementById('two-cp');
 
 
 // Update game objects
@@ -174,7 +199,10 @@ function update(dt) {
 
     checkCollisions(dt);
 
-    scoreEl.innerHTML = score;
+    oneHP.innerHTML = player1.health;
+    oneCP.innerHTML = player1.capacity;
+    twoHP.innerHTML = player2.health;
+    twoCP.innerHTML = player2.capacity;
 };
 
 
@@ -210,7 +238,7 @@ function handleInput(dt) {
                     player.sprite.state = "uppercut";
                     player.velocityY = -playerJump /1.2;
 
-                    if(player.direction === player.keys.RIGHT){
+                    if(player.direction === "RIGHT"){
                         player.velocityX = playerJump /5;
                     }
                     else{   
@@ -324,7 +352,7 @@ function handleInput(dt) {
                     player.sprite.state = "uppercut";
                     player.velocityY = -playerJump /1.2;
 
-                    if(player.direction === player.keys.RIGHT){
+                    if(player.direction === "RIGHT"){
                         player.velocityX = playerJump /5;
                     }
                     else{   
@@ -377,7 +405,7 @@ function handleInput(dt) {
                 else if(input.isDown(player.keys.BASIC) && (input.isDown(player.keys.LEFT) || input.isDown(player.keys.RIGHT))) {
                     player.sprite.state = "sidekick";
                     
-                    if(player.direction === player.keys.RIGHT){
+                    if(player.direction === "RIGHT"){
                         player.velocityX = playerJump /2;
                     }
                     else{   
@@ -398,7 +426,7 @@ function handleInput(dt) {
                     player.sprite.state = "uppercut";
                     player.velocityY = -playerJump /1.2;
 
-                    if(player.direction === player.keys.RIGHT){
+                    if(player.direction === "RIGHT"){
                         player.velocityX = playerJump /5;
                     }
                     else{   
@@ -536,16 +564,41 @@ function boxCollides(pos, size, pos2, size2) {
 
 function checkCollisions(dt) {
     checkPlayerBounds(dt);
+
+    var playerPos = [];
+    var playerSize = [];
+
+    players.forEach(player => {
+        playerPos.push([player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]]);
+        playerSize.push(player.sprite.boxsize);
+    })
+
+    if(boxCollides(playerPos[0], playerSize[0], playerPos[1], playerSize[1])) {
+        if(player1.sprite.priority > player2.sprite.priority){
+            if(player1.sprite.priority > 0){
+                player2.damaged(player1.sprite);
+            }
+        }else if(player1.sprite.priority < player2.sprite.priority){
+            if(player2.sprite.priority > 0){
+                player1.damaged(player2.sprite);
+            }
+        }else{
+            if(player1.sprite.priority > 0){
+                player1.sprite.state = "hurt";
+                player1.sprite.state = "hurt";
+            }
+        } 
+    }
     
     // Run collision detection for all enemies and bullets
     // Factor in hitbox size
-    players.forEach(player => {
-        for(var i=0; i<enemies.length; i++) {
-        var pos = [enemies[i].pos[0] + enemies[i].sprite.boxpos[0], enemies[i].pos[1] + enemies[i].sprite.boxpos[1]];
-        var size = enemies[i].sprite.boxsize;
+    //players.forEach(player => {
+        // for(var i=0; i<enemies.length; i++) {
+        // var pos = [enemies[i].pos[0] + enemies[i].sprite.boxpos[0], enemies[i].pos[1] + enemies[i].sprite.boxpos[1]];
+        // var size = enemies[i].sprite.boxsize;
 
-        var playerPos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
-        var playerSize = player.sprite.boxsize;
+        // var playerPos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
+        // var playerSize = player.sprite.boxsize;
 
         // for(var j=0; j<bullets.length; j++) {
         //     var pos2 = bullets[j].pos;
@@ -577,11 +630,11 @@ function checkCollisions(dt) {
         //     }
         // }
 
-            if(boxCollides(pos, size, playerPos, playerSize)) {
-                gameOver();
-            }
-        }
-    })
+    //         if(boxCollides(pos, size, playerPos, playerSize)) {
+    //             gameOver();
+    //         }
+    //     }
+    // })
 }
 
 function checkPlayerBounds(dt) {

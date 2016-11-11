@@ -2,6 +2,7 @@ function Sprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once) {
     this.state;
     this.flipped = false;
 
+    this.priority = 0;  // this prop determines which attack has precedence
     this.pos = pos;
     this.size = size;
     this.boxpos = boxpos;
@@ -105,69 +106,94 @@ function PlayerSprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once)
 
 PlayerSprite.prototype.update = function(dt) {
     switch(this.state){
-        case "walk":
-            this.url = "img/cat.png";
-            this.pos = [0, 64];
-            this.frames = [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1];
-            break;
-        case "crouch":
-            this.url = "img/cat.png";
-            this.pos = [0, 64*7];
-            this.frames = [2];
-            break;
-        case "jump":
-            this.url = "img/cat.png";
-            this.pos = [0, 64*2];
-            this.frames = [2, 3];
-            break;
-        case "jump2":
-            this.url = "img/cat.png";
-            this.pos = [0, 64*3];
-            this.frames = [3, 4, 5, 6];
-            this.speed *= 1.5;
-            break;
-        case "punch":
-            this.url = "img/cat.png";
-            this.pos = [0, 64*9];
-            this.frames = [4, 5, 7, 8];
-            break;
         case "uppercut":
             this.url = "img/cat.png";
             this.pos = [0, 64*8];
             this.frames = [6, 7];
-            break;
-        case "downkick":
-            this.url = "img/cat.png";
-            this.pos = [0, 64*3];
-            this.frames = [8];
-            break;
-        case "sidekick":
-            this.url = "img/cat.png";
-            this.pos = [0, 64*10];
-            this.frames = [2, 3];
-            break;
-        case "airkick":
-            this.url = "img/cat.png";
-            this.pos = [0, 64*7];
-            this.frames = [5, 6];
+            this.priority = 9;
             break;
         case "kick":
             this.url = "img/cat.png";
             this.pos = [0, 64*11];
             this.speed = 3;
             this.frames = [2, 3];
+            this.priority = 8;
+            break;
+        case "downkick":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*3];
+            this.frames = [8];
+            this.priority = 7;
+            break;
+        case "punch":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*9];
+            this.frames = [4, 5, 7, 8];
+            this.priority = 6;
+            break;
+        case "airkick":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*7];
+            this.frames = [5, 6];
+            this.priority = 5;
+            break;
+        case "sidekick":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*10];
+            this.frames = [2, 3];
+            this.priority = 4;
+            break;
+        case "crouch":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*7];
+            this.frames = [2];
+            this.priority = 0;
+            break;
+        // case "idle":                 // this makes players walk in place for some reason
+        //     this.url = "img/cat.png";
+        //     this.state = "idle";
+        //     this.pos = [0, 0];
+        //     this.frames = [0, 1, 2, 3];
+        //     this.priority = 1;
+        case "walk":
+            this.url = "img/cat.png";
+            this.pos = [0, 64];
+            this.frames = [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1];
+            this.priority = -1;
             break;
         case "supershot":
             this.url = "img/cat2.png"
             this.pos = [0, 64*0];
             this.frames = [0, 1, 2, 3, 4, 5, 6, 7, 8]  //  , 9, 10];
             this.speed *= 1.5;
+            this.priority = -1; // this isn't the attack itself, remember
+            break;
+        case "jump":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*2];
+            this.frames = [2, 3];
+            this.priority = -2;
+            break;
+        case "jump2":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*3];
+            this.frames = [3, 4, 5, 6];
+            this.speed *= 1.5;
+            this.priority = -2;
+            break;
+        case "hurt":
+            this.url = "img/cat.png"
+            this.pos = [0, 64*4];
+            this.frames = [1, 2]
+            this.speed *= 0.5;
+            this.priority = -3;
             break;
         default:
             this.url = "img/cat.png";
             this.state = "idle";
             this.pos = [0, 0];
             this.frames = [0, 1, 2, 3];
+            this.priority = 0;
     }
 
     this._index += this.speed*dt;
