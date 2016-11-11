@@ -96,6 +96,7 @@ var groundHeight = 5;
 
 // Game state
 var player1 = {
+    who: 1,
     pos: [0, 0],
     velocityY: 0,
     velocityX: 0,
@@ -118,6 +119,7 @@ var player1 = {
 };
 
 var player2 = {
+    who: 2,
     pos: [0, 0],
     velocityY: 0,
     velocityX: 0,
@@ -216,22 +218,7 @@ function handleInput(dt) {
                     }
                     player.lastJump = Date.now();
                 }
-
-                // else if(input.isDown(player.keys.BASIC) && (input.isDown(player.keys.LEFT) || input.isDown(player.keys.RIGHT))) {
-                //         if(Date.now() - player.lastKick < kickCd){ break;}
-
-                //         player.sprite.state = "kick";
-
-                //         if(player.direction === player.keys.RIGHT){
-                //             player.velocityX = playerJump /3;
-                //         }
-                //         else{   
-                //             player.velocityX = -playerJump /3;
-                //         }
-                //         player.lastKick = Date.now();
-                // }
                 
-
                 else if(input.isDown(player.keys.BASIC)) {
                     player.sprite.state = "punch";
                 }
@@ -267,6 +254,7 @@ function handleInput(dt) {
                     player.sprite.state = "crouch";
                 }
                 break;
+
             case("jump"):   // these are midair actions
                 if(input.isDown(player.keys.JUMP) && input.isDown(player.keys.LEFT)) {
                     if(player.velocityX <= 0){
@@ -315,7 +303,7 @@ function handleInput(dt) {
                 else if(input.isDown(player.keys.BASIC) && (input.isDown(player.keys.LEFT) || input.isDown(player.keys.RIGHT))) {
                     player.sprite.state = "sidekick";
                     
-                    if(player.direction === player.keys.RIGHT){
+                    if(player.direction === "RIGHT"){
                         player.velocityX = playerJump /2;
                     }
                     else{   
@@ -556,8 +544,8 @@ function checkCollisions(dt) {
         var pos = [enemies[i].pos[0] + enemies[i].sprite.boxpos[0], enemies[i].pos[1] + enemies[i].sprite.boxpos[1]];
         var size = enemies[i].sprite.boxsize;
 
-        var p1pos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
-        var p1size = player.sprite.boxsize;
+        var playerPos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
+        var playerSize = player.sprite.boxsize;
 
         // for(var j=0; j<bullets.length; j++) {
         //     var pos2 = bullets[j].pos;
@@ -589,7 +577,7 @@ function checkCollisions(dt) {
         //     }
         // }
 
-            if(boxCollides(pos, size, p1pos, p1size)) {
+            if(boxCollides(pos, size, playerPos, playerSize)) {
                 gameOver();
             }
         }
