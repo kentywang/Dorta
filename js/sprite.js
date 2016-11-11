@@ -34,7 +34,7 @@ Sprite.prototype.update = function(dt) {
     this._index += this.speed*dt;
 }
 
-Sprite.prototype.render = function(ctx) {
+Sprite.prototype.render = function(ctx, flipped) {
     var frame;
 
     if(this.speed > 0) {
@@ -67,12 +67,22 @@ Sprite.prototype.render = function(ctx) {
     else {
         x += frame * this.size[0];
     }
-
-    ctx.drawImage(resources.get(this.url),
+    if(flipped){
+        ctx.scale(-1, 1);
+        ctx.drawImage(resources.get(this.url),
                   x, y,
                   this.size[0], this.size[1],
                   0, 0,
                   this.size[0], this.size[1]);
+        ctx.restore();
+    }
+    else{
+        ctx.drawImage(resources.get(this.url),
+                  x, y,
+                  this.size[0], this.size[1],
+                  0, 0,
+                  this.size[0], this.size[1]);
+    }
 }
 
 
@@ -162,7 +172,7 @@ PlayerSprite.prototype.update = function(dt) {
     this._index += this.speed*dt;
 }
 
-PlayerSprite.prototype.render = function(ctx) {
+PlayerSprite.prototype.render = function(ctx, flipped) {
     var frame;
 
     if(this.speed > 0) {
@@ -195,10 +205,19 @@ PlayerSprite.prototype.render = function(ctx) {
     else {
         x += frame * this.size[0];
     }
-
-    ctx.drawImage(resources.get(this.url),
+    if(flipped){
+        ctx.scale(-1, 1);
+        ctx.drawImage(resources.get(this.url),
                   x, y,
                   this.size[0], this.size[1],
                   0, 0,
                   this.size[0], this.size[1]);
+        ctx.restore();
+    }else{
+        ctx.drawImage(resources.get(this.url),
+                  x, y,
+                  this.size[0], this.size[1],
+                  0, 0,
+                  this.size[0], this.size[1]);
+    }
 }
