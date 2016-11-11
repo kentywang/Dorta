@@ -1,5 +1,6 @@
 function Sprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once) {
     this.state;
+    this.flipped = false;
 
     this.pos = pos;
     this.size = size;
@@ -34,7 +35,7 @@ Sprite.prototype.update = function(dt) {
     this._index += this.speed*dt;
 }
 
-Sprite.prototype.render = function(ctx, flipped) {
+Sprite.prototype.render = function(ctx) {
     var frame;
 
     if(this.speed > 0) {
@@ -67,7 +68,7 @@ Sprite.prototype.render = function(ctx, flipped) {
     else {
         x += frame * this.size[0];
     }
-    if(flipped){
+    if(this.flipped){
         ctx.scale(-1, 1);
         ctx.drawImage(resources.get(this.url),
                   x, y,
@@ -172,7 +173,7 @@ PlayerSprite.prototype.update = function(dt) {
     this._index += this.speed*dt;
 }
 
-PlayerSprite.prototype.render = function(ctx, flipped) {
+PlayerSprite.prototype.render = function(ctx) {
     var frame;
 
     if(this.speed > 0) {
@@ -205,7 +206,7 @@ PlayerSprite.prototype.render = function(ctx, flipped) {
     else {
         x += frame * this.size[0];
     }
-    if(flipped){
+    if(this.flipped){
         ctx.scale(-1, 1);
         ctx.drawImage(resources.get(this.url),
                   x, y,
