@@ -74,7 +74,7 @@ Sprite.prototype.render = function(ctx) {
                   x, y,
                   this.size[0], this.size[1],
                   0, 0,
-                  this.size[0], this.size[1]);
+                  -this.size[0], this.size[1]);
         ctx.restore();
     }
     else{
@@ -207,12 +207,13 @@ PlayerSprite.prototype.render = function(ctx) {
         x += frame * this.size[0];
     }
     if(this.flipped){
+        ctx.save();
         ctx.scale(-1, 1);
         ctx.drawImage(resources.get(this.url),
                   x, y,
                   this.size[0], this.size[1],
                   0, 0,
-                  this.size[0], this.size[1]);
+                  -this.size[0], this.size[1]);
         ctx.restore();
     }else{
         ctx.drawImage(resources.get(this.url),
