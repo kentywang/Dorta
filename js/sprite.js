@@ -20,9 +20,13 @@ Sprite.prototype.update = function(dt) {
             this.frames = [0, 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1];
             break;
         case "jump":
-            this.pos = [0, 128];
+            this.pos = [0, 64*2];
             this.frames = [2, 3];
-            //this.once = true;
+            break;
+        case "jump2":
+            this.pos = [0, 64*3];
+            this.frames = [3, 4, 5, 6];
+            this.speed *= 1.5;
             break;
         default:
             this.state = "idle";
@@ -43,7 +47,6 @@ Sprite.prototype.render = function(ctx) {
 
         if(this.once && idx >= max) {
             this.done = true;
-            //this.state = "idle";
             return;
         }
     }
