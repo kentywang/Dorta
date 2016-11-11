@@ -65,6 +65,7 @@ function init() {
 resources.load([
     'img/cat.png',
     'img/cat2.png',
+    'img/shot.png',
     'img/parallax-forest-lights.png',
     'img/parallax-forest-back-trees.png',
     'img/parallax-forest-middle-trees.png',
@@ -76,27 +77,34 @@ resources.onReady(init);
 // Speed in pixels per second
 var player1Speed = 70;
 var normalSpeed = 6;    // frames per second of sprite
-var bulletSpeed = 500;
+var shotSpeed = 140;
 var enemySpeed = 50;
+
+// Cooldowns
+var supershotCd = .5 * 1000;
+var jumpCd = .25 * 1000;
+var kickCd = 1 * 1000;
+var shotChargeTime = .5 * 1000;
 
 // Physics
 var player1Jump = 300;
 var gravityAccelerationY = 800;
 var gravityAccelerationX = 20;
+var groundHeight = 30
 
 // Game state
 var player1 = {
     pos: [0, 0],
     velocityY: 0,
     velocityX: 0,
-    sprite: new Sprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12, 28], normalSpeed, [0, 1, 2, 3]),
+    sprite: new PlayerSprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12, 28], normalSpeed, [0, 1, 2, 3]),
     lastJump: Date.now(),
     lastLand: Date.now(),
-    lastShot: Date.now(),
+    lastKick: Date.now(),
     direction: 'RIGHT'
 };
 
-var bullets = [];
+var player1shots = [];
 var enemies = [];
 var explosions = [];
 
@@ -118,8 +126,8 @@ function update(dt) {
     processPhysics(dt);
     updateEntities(dt);
 
-    // It gets harder over time by adding enemies using this
-    // equation: 1-.993^gameTime
+    //It gets harder over time by adding enemies using this
+    //equation: 1-.993^gameTime
     // if(Math.random() < .01) {
     //     enemies.push({
     //         pos: [canvas.width,
@@ -138,7 +146,7 @@ function handleInput(dt) {
     switch(player1.sprite.state){
         case("idle"):
             if(input.isDown('SPACE') && input.isDown('LEFT')) {
-                if(Date.now() - player1.lastLand < 250){ break;}
+                //if(Date.now() - player1.lastLand < 250){ break;}
                 player1.sprite.state = "jump";
                 player1.velocityY = -player1Jump;
                 player1.velocityX = -player1Jump/4;
@@ -146,7 +154,7 @@ function handleInput(dt) {
             }
 
             else if(input.isDown('SPACE') && input.isDown('RIGHT')) {
-                if(Date.now() - player1.lastLand < 250){ break;}
+                //if(Date.now() - player1.lastLand < 250){ break;}
                 player1.sprite.state = "jump";
                 player1.velocityY = -player1Jump;
                 player1.velocityX = player1Jump/4;
@@ -154,13 +162,14 @@ function handleInput(dt) {
             }
 
             else if(input.isDown('SPACE')) {
-                if(Date.now() - player1.lastLand < 250){ break;}
+                //if(Date.now() - player1.lastLand < 250){ break;}
                 player1.sprite.state = "jump";
                 player1.velocityY = -player1Jump;
                 player1.lastJump = Date.now();
             }
 
             else if(input.isDown('Q') && input.isDown('UP')) {
+                if(Date.now() - player1.lastJump < jumpCd){ break;}
                 player1.sprite.state = "uppercut";
                 player1.velocityY = -player1Jump /1.2;
 
@@ -174,6 +183,8 @@ function handleInput(dt) {
             }
 
             // else if(input.isDown('Q') && input.isDown(player1.direction)) {
+            //         if(Date.now() - player1.lastKick < kickCd){ break;}
+
             //         player1.sprite.state = "kick";
 
             //         if(player1.direction === "RIGHT"){
@@ -182,20 +193,26 @@ function handleInput(dt) {
             //         else{   
             //             player1.velocityX = -player1Jump /3;
             //         }
+            //         player1.lastKick = Date.now();
             // }
             
 
             else if(input.isDown('Q')) {
                 player1.sprite.state = "punch";
             }
-
+            //figure out how to keep state going even when not button dowkk
             else if(input.isDown('W')) {
-                //if(Date.now() - player1.lastShot < 2500){ break;}
+                if(Date.now() - player1.lastShot < supershotCd){ break;}
 
                 player1.sprite.state = "supershot";
-                //player1.sprite.resetFrame = true;
 
-                //player1.lastShot = Date.now();
+                var x = player1.pos[0] + player1.sprite.boxsize[0] / 4;
+                var y = player1.pos[1] + player1.sprite.boxsize[1] / 8;
+                player1shots.push({ pos: [x, y],
+                       dir: 'forward',
+                       sprite: new Sprite('img/shot.png', [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3]),
+                       fireTime: Date.now()
+                   });
             }
             
             else if(input.isDown('LEFT')) {
@@ -224,12 +241,13 @@ function handleInput(dt) {
                     player1.velocityX -= player1Jump /8 * dt;
                 }
 
-                if(Date.now() - player1.lastJump > 250){
+                if(Date.now() - player1.lastJump > jumpCd){
                     player1.sprite.state = "jump2";
                     player1.velocityY = -player1Jump /1.2;
                     if(player1.velocityX > 0){
                         player1.velocityX = -player1Jump/4;
                     }
+                    player1.lastJump = Date.now();
                 }
             }
 
@@ -241,19 +259,21 @@ function handleInput(dt) {
                     player1.velocityX += player1Jump /4 * dt;
                 }
 
-                if(Date.now() - player1.lastJump > 250){
+                if(Date.now() - player1.lastJump > jumpCd){
                     player1.sprite.state = "jump2";
                     player1.velocityY = -player1Jump /1.2;
                     if(player1.velocityX < 0){
                         player1.velocityX = player1Jump/4;
                     }
+                    player1.lastJump = Date.now();
                 }
             }
 
             else if(input.isDown('SPACE')) {
-                if(Date.now() - player1.lastJump > 250){
+                if(Date.now() - player1.lastJump > jumpCd){
                     player1.sprite.state = "jump2";
                     player1.velocityY = -player1Jump /1.2;
+                    player1.lastJump = Date.now();
                 }
             }
 
@@ -277,6 +297,7 @@ function handleInput(dt) {
             }
 
             else if(input.isDown('Q') && input.isDown('UP')) {
+                if(Date.now() - player1.lastJump < jumpCd){ break;}
                 player1.sprite.state = "uppercut";
                 player1.velocityY = -player1Jump /1.2;
 
@@ -350,6 +371,7 @@ function handleInput(dt) {
             }
 
             else if(input.isDown('Q') && input.isDown('UP')) {
+                if(Date.now() - player1.lastJump < jumpCd){ break;}
                 player1.sprite.state = "uppercut";
                 player1.velocityY = -player1Jump /1.2;
 
@@ -435,24 +457,29 @@ function updateEntities(dt) {
     // Update the player sprite animation
     player1.sprite.update(dt);
 
-    // // Update all the bullets
-    // for(var i=0; i<bullets.length; i++) {
-    //     var bullet = bullets[i];
+    // Update all the shots
+    for(var i=0; i<player1shots.length; i++) {
+        //  this will check if enough time has passed before moving shot
+        if(Date.now() - player1shots[i].fireTime < shotChargeTime){ break;}
 
-    //     switch(bullet.dir) {
-    //     case 'up': bullet.pos[1] -= bulletSpeed * dt; break;
-    //     case 'down': bullet.pos[1] += bulletSpeed * dt; break;
-    //     default:
-    //         bullet.pos[0] += bulletSpeed * dt;
-    //     }
+        var shot = player1shots[i];
 
-    //     // Remove the bullet if it goes offscreen
-    //     if(bullet.pos[1] < 0 || bullet.pos[1] > canvas.height ||
-    //        bullet.pos[0] > canvas.width) {
-    //         bullets.splice(i, 1);
-    //         i--;
-    //     }
-    // }
+        switch(shot.dir) {
+        case 'up': shot.pos[1] -= shotSpeed * dt; break;
+        case 'down': shot.pos[1] += shotSpeed * dt; break;
+        default:
+            shot.pos[0] += shotSpeed * dt;
+        }
+
+        player1shots[i].sprite.update(dt);
+
+        // Remove the shot if it goes offscreen
+        if(shot.pos[1] < 0 || shot.pos[1] > canvas.height ||
+           shot.pos[0] > canvas.width) {
+            player1shots.splice(i, 1);
+            i--;
+        }
+    }
 
     // Update all the enemies
     for(var i=0; i<enemies.length; i++) {
@@ -569,7 +596,14 @@ function checkPlayerBounds(dt) {
         }
 
         player1.sprite.speed = normalSpeed;
-        player1.sprite.state = "idle";
+
+        // if(player1.sprite.state === "jump" || player1.sprite.state === "jump2" || player1.sprite.state === "uppercut"){
+        //     player1.lastLand = Date.now();
+        // }
+
+        if(player1.sprite.state !== "supershot" && player1.sprite.state !== "kick"){   // these are the actions that cannot be interrupted once begun
+            player1.sprite.state = "idle";
+        }
         player1.pos[1] = canvas.height - player1.sprite.boxpos[1] - player1.sprite.boxsize[1];
     }
 }
@@ -585,21 +619,27 @@ function render() {
         renderEntity(player1);
     }
 
-    renderEntities(bullets);
+    renderEntities(player1shots);
     renderEntities(enemies);
     renderEntities(explosions);
 };
 
 function renderEntities(list) {
     for(var i=0; i<list.length; i++) {
-        renderEntity(list[i], true);
+        ctx.save();
+        ctx.translate(list[i].pos[0], list[i].pos[1]);
+        //  this will check if enough time has passed before rendering shot
+        if(Date.now() - list[i].fireTime > shotChargeTime){
+            list[i].sprite.render(ctx);
+        }
+        ctx.restore();
     }    
 }
 
-function renderEntity(entity, flipped) {
+function renderEntity(entity) {
     ctx.save();
     ctx.translate(entity.pos[0], entity.pos[1]);
-    entity.sprite.render(ctx, flipped);
+    entity.sprite.render(ctx);
     ctx.restore();
 }
 
