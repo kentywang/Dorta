@@ -75,8 +75,9 @@ resources.onReady(init);
 // Game state
 var player1 = {
     pos: [0, 0],
-    sprite: new Sprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12, 28], 6, [0, 1, 2, 3]),
-    state: ""
+    velocityY: 0,
+    velocityX: 0,
+    sprite: new Sprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12, 28], 6, [0, 1, 2, 3])
 };
 
 var bullets = [];
@@ -93,9 +94,13 @@ var score = 0;
 var scoreEl = document.getElementById('score');
 
 // Speed in pixels per second
-var player1Speed = 50;
+var player1Speed = 70;
 var bulletSpeed = 500;
 var enemySpeed = 50;
+
+// Physics
+var player1Jump = -300;
+var gravityAccelerationY = 800;
 
 
 // Update game objects
@@ -103,6 +108,7 @@ function update(dt) {
     gameTime += dt;
 
     handleInput(dt);
+    processPhysics(dt);
     updateEntities(dt);
 
     // It gets harder over time by adding enemies using this
@@ -122,34 +128,46 @@ function update(dt) {
 
 
 function handleInput(dt) {
-    if(player1.state !== "dead"){
-        player1.state = "idle";
-    }
+    if(player1.sprite.state !== "jump"){ // TEMP+RARILY EDITED
+        player1.sprite.state = "idle";
 
+        if(input.isDown('DOWN')) {
+            // player1.sprite.state = "walk";
+            // player1.pos[1] += player1Speed * dt;
+        }
 
-    if(input.isDown('DOWN') || input.isDown('r')) {
-        player1.pos[1] += player1Speed * dt;
-    }
+        else if(input.isDown('SPACE') && input.isDown('LEFT')) {
+            player1.sprite.state = "jump";
+            player1.velocityY = player1Jump;
+            player1.velocityX = player1Jump/4;
+            //player1.pos[0] -= player1Speed * dt;
+        }
 
-    if(input.isDown('UP') || input.isDown('w')) {
-        player1.pos[1] -= player1Speed * dt;
-    }
+        else if(input.isDown('SPACE') && input.isDown('RIGHT')) {
+            player1.sprite.state = "jump";
+            player1.velocityY = player1Jump;
+            player1.velocityX = -player1Jump/4;
+            //player1.pos[0] += player1Speed * dt;
+        }
 
-    if(input.isDown('LEFT') || input.isDown('a')) {
-        if(player1.state !== "dead"){
-            player1.state = "walk";
+        else if(input.isDown('SPACE')) {
+            player1.sprite.state = "jump";
+            player1.velocityY = player1Jump;
+        }
+
+        else if(input.isDown('LEFT')) {
+            player1.sprite.state = "walk";
             player1.pos[0] -= player1Speed * dt;    
         }
-    }
 
-    if(input.isDown('RIGHT') || input.isDown('s')) {
-        if(player1.state !== "dead"){
-            player1.state = "walk";
+        else if(input.isDown('RIGHT')) {
+            player1.sprite.state = "walk";
             player1.pos[0] += player1Speed * dt;
         }
     }
+        console.log(player1.sprite.state)
 
-    // if(input.isDown('SPACE') &&
+    // if(input.isDown('UP') &&
     //    !isGameOver &&
     //    Date.now() - lastFire > 100) {
     //     var x = player1.pos[0] + player1.sprite.size[0] / 2;
@@ -169,6 +187,15 @@ function handleInput(dt) {
     // }
 }
 
+function processPhysics(dt){
+    player1.velocityY += gravityAccelerationY * dt;
+    player1.pos[1] += player1.velocityY * dt;
+    player1.pos[0] += player1.velocityX * dt;
+    // if (player1.pos[1] > 0) {
+    //     positionY = 0; // assuming the ground is at height 0
+    //     velocityY = 0;
+    // }
+}
 
 function updateEntities(dt) {
     // Update the player sprite animation
@@ -280,18 +307,25 @@ function checkCollisions() {
 }
 
 function checkPlayerBounds() {
-    // Check bounds (enforce at hitbox)
+    // Check side bounds (enforce at hitbox)
     if(player1.pos[0]  < - player1.sprite.boxpos[0]) {
+        player1.velocityX = 0;  // may want to change this to get bouncing
         player1.pos[0] = - player1.sprite.boxpos[0];
     }
     else if(player1.pos[0] > canvas.width - player1.sprite.boxpos[0] - player1.sprite.boxsize[0]) {
+        player1.velocityX = 0;  // may want to change this to get bouncing
         player1.pos[0] = canvas.width - player1.sprite.boxpos[0] - player1.sprite.boxsize[0];
     }
 
+    // Check top and lower bounds
     if(player1.pos[1]  < - player1.sprite.boxpos[1]) {
+        player1.velocityY = 0;  // may want to change this to get bouncing
         player1.pos[1] = - player1.sprite.boxpos[1];
     }
     else if(player1.pos[1] > canvas.height - player1.sprite.boxpos[1] - player1.sprite.boxsize[1]) {
+        player1.velocityY = 0;
+        player1.velocityX = 0;
+        player1.sprite.state = "idle";
         player1.pos[1] = canvas.height - player1.sprite.boxpos[1] - player1.sprite.boxsize[1];
     }
 }
@@ -343,5 +377,5 @@ function reset() {
     enemies = [];
     bullets = [];
 
-    player1.pos = [50, canvas.height / 2];
+    player1.pos = [50, canvas.height];
 };
