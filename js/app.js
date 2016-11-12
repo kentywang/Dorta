@@ -90,11 +90,15 @@ var normalSpeed = 6;    // frames per second of sprite
 var shotSpeed = 140;
 // var enemySpeed = 50;
 var invulnerableTime = 800;
+var regenAmt = 2.5;
+var maxHealth = 200;
+var startCapacity = 300;
 
 // Cooldowns
 var supershotCd = 1.5 * 1000;
 var jumpCd = .25 * 1000;
 var kickCd = 1 * 1000;
+var punchCd = .6 * 1000;
 var shotChargeTime = .5 * 1000;
 
 // Physics
@@ -102,6 +106,9 @@ var playerJump = 300;
 var gravityAccelerationY = 800;
 var gravityAccelerationX = 20;
 var groundHeight = 5;
+var bounceCapacity= 100;
+var bounceCapacity2= 450;
+var groundBounceVelocity = 450;
 
 // Utility functions
 function numberBetween(n, m){
@@ -115,8 +122,8 @@ function dmg(player){
             this.health -= pts;
             this.capacity += pts * 1.8;
         }
-
-        switch(whereTo){
+        if(this.capacity < bounceCapacity2){
+            switch(whereTo){
             case("up"):
                 this.velocityY = -this.capacity/1.5;
 
@@ -135,13 +142,61 @@ function dmg(player){
                     this.velocityX = this.capacity/4;
                 }
                 break;
+            case("sideDown"):
+                this.velocityY = this.capacity/4;
+
+                if(this.direction === "RIGHT"){
+                    this.velocityX = -this.capacity/2;
+                }else{
+                    this.velocityX = this.capacity/2;
+                }
+                break;
             default:
                 if(this.direction === "RIGHT"){
                     this.velocityX = -this.capacity/2;
                 }else{
                     this.velocityX = this.capacity/2;
                 }
+            }
+        }else{
+            switch(whereTo){
+            case("up"):
+                this.velocityY = -this.capacity/1.5;
+
+                if(this.direction === "RIGHT"){
+                    this.velocityX = -this.capacity/12;
+                }else{
+                    this.velocityX = this.capacity/12;
+                }
+                break;
+            case("down"):
+                this.velocityY = Math.min(groundBounceVelocity, this.capacity/1.5);
+
+                if(this.direction === "RIGHT"){
+                    this.velocityX = -this.capacity/4;
+                }else{
+                    this.velocityX = this.capacity/4;
+                }
+                break;
+            case("sideDown"):
+                this.velocityY = Math.min(groundBounceVelocity, this.capacity/1.5);
+
+                if(this.direction === "RIGHT"){
+                    this.velocityX = -this.capacity/2;
+                }else{
+                    this.velocityX = this.capacity/2;
+                }
+                break;
+            default:
+                this.velocityY = Math.min(groundBounceVelocity)
+                if(this.direction === "RIGHT"){
+                    this.velocityX = -this.capacity/2;
+                }else{
+                    this.velocityX = this.capacity/2;
+                }
+            }
         }
+        
         framesToSkip = 10;
     }
 
@@ -157,7 +212,7 @@ function dmg(player){
             framesToSkip = 1;
             return; // return instead of just breaking because don't want to give inv frames or hurt status
         case ("uppercut"):
-            pushback(numberBetween(16,20), "up");
+            pushback(numberBetween(8,10), "up");
             break;
         case ("kick"):
             pushback(numberBetween(11,13));
@@ -172,7 +227,7 @@ function dmg(player){
             pushback(12);
             break;
         case ("sidekick"):
-            pushback(numberBetween(11,17));
+            pushback(numberBetween(11,17), "sideDown");
             break;
         case ("moving"):
             // have multiple cases here for difference levels of shot
@@ -189,8 +244,8 @@ function dmg(player){
 // Game state
 var player1 = {
     who: 1,
-    health: 100,
-    capacity: 100,
+    health: maxHealth,
+    capacity: startCapacity,
     pos: [0, 0],
     velocityY: 0,
     velocityX: 0,
@@ -198,6 +253,7 @@ var player1 = {
     lastJump: Date.now(),
     lastLand: Date.now(),
     lastKick: Date.now(),
+    lastPunch: Date.now(),
     direction: 'RIGHT',
     shots: [],
     keys: {
@@ -208,16 +264,17 @@ var player1 = {
         JUMP: "SPACE",
         BASIC: "Q",
         SPECIAL: "W",
-        ULTI: "E"
+        ULTI: "F"
     },
     damaged: dmg,
-    invulnerable: Date.now()
+    invulnerable: Date.now(),
+    lastRegen: Date.now()
 };
 
 var player2 = {
     who: 2,
-    health: 100,
-    capacity: 100,
+    health: maxHealth,
+    capacity: startCapacity,
     pos: [0, 0],
     velocityY: 0,
     velocityX: 0,
@@ -225,6 +282,7 @@ var player2 = {
     lastJump: Date.now(),
     lastLand: Date.now(),
     lastKick: Date.now(),
+    lastPunch: Date.now(),
     direction: 'LEFT',
     shots: [],
     keys: {
@@ -238,7 +296,8 @@ var player2 = {
         ULTI: "3"
     },
     damaged: dmg,
-    invulnerable: Date.now()
+    invulnerable: Date.now(),
+    lastRegen: Date.now()
 };
 
 var players = [player1, player2];
@@ -260,11 +319,17 @@ var twoCP = document.getElementById('two-cp');
 function update(dt) {
     gameTime += dt;
 
-    // disable hurt state if no longer invulnerable
     players.forEach(player => {
+        //console.log(player.health <= (maxHealth - regenAmt))
+        if(Date.now() - player.lastRegen > 1000 && player.health <= (maxHealth - regenAmt)){
+            player.health += regenAmt;
+            player.lastRegen = Date.now();
+        }
+        // disable hurt state if no longer invulnerable
         if(player.sprite.state === "hurt" && player.invulnerable < Date.now() - invulnerableTime)
             player.sprite.state = "idle";    
     })
+
 
     handleInput(dt);
     processPhysics(dt);
@@ -320,7 +385,11 @@ function handleInput(dt) {
                 }
                 
                 else if(input.isDown(player.keys.BASIC)) {
+                    console.log(Date.now() - player.lastPunch)
+                    if(Date.now() - player.lastPunch < punchCd){ 
+                        break;}
                     player.sprite.state = "punch";
+                    player.lastPunch = Date.now();
                     //console.log(player.sprite.state)
                 }
 
@@ -565,7 +634,7 @@ function updateEntities(dt) {
 
     players.forEach(player => {
         // Update the player sprite animation
-        console.log(player1.shots.length, player2.shots.length)
+        //console.log(player1.shots.length, player2.shots.length)
         player.sprite.update(dt);
 
         // Update all the shots
@@ -721,22 +790,50 @@ function checkPlayerBounds(dt) {
     players.forEach(player => {
         // Check side bounds (enforce at hitbox)
         if(player.pos[0]  < - player.sprite.boxpos[0]) {
-            player.velocityX = 0;  // may want to change this to get bouncing
             player.pos[0] = - player.sprite.boxpos[0];
+            if(player.capacity > bounceCapacity){
+                player.velocityX = -player.velocityX/4;
+                if(player.sprite.state === "hurt"){
+                    framesToSkip = 5;
+                }
+            }else{
+                player.velocityX = 0;
+            }
         }
         else if(player.pos[0] > canvas.width - player.sprite.boxpos[0] - player.sprite.boxsize[0]) {
-            player.velocityX = 0;  // may want to change this to get bouncing
             player.pos[0] = canvas.width - player.sprite.boxpos[0] - player.sprite.boxsize[0];
+            if(player.capacity > bounceCapacity){
+                player.velocityX = -player.velocityX/4;
+                if(player.sprite.state === "hurt"){
+                    framesToSkip = 5;
+                }
+            }else{
+                player.velocityX = 0;
+            }
         }
 
         // Check top and lower bounds
         if(player.pos[1]  < - player.sprite.boxpos[1]) {
-            player.velocityY = 0;  // may want to change this to get bouncing
             player.pos[1] = - player.sprite.boxpos[1];
+            if(player.capacity > bounceCapacity){
+                player.velocityY = -player.velocityY/4;
+                if(player.sprite.state === "hurt"){
+                    framesToSkip = 5;
+                }
+            }else{
+                player.velocityY = 0;
+            }
         }
         else if(player.pos[1] > canvas.height - groundHeight - player.sprite.boxpos[1] - player.sprite.boxsize[1]) {
-            player.velocityY = 0;
-            //player.velocityX = 0;    // no sliding
+            if(player.capacity > bounceCapacity && player.sprite.state === "hurt" && player.velocityY > groundBounceVelocity){
+                //console.log("times", player.velocityY )
+                player.velocityY = -player.velocityY/4;
+                if(player.sprite.state === "hurt"){
+                    framesToSkip = 5;
+                }
+            }else{
+                player.velocityY = 0;
+            }
 
             // sliding physics
             if(player.velocityX < 0){
@@ -789,7 +886,6 @@ function render() {
 
     renderEntities(player1.shots);
     renderEntities(player2.shots);
-    //renderEntities(enemies);
     renderEntities(explosions);
 };
 

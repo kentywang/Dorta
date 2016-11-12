@@ -127,7 +127,7 @@ PlayerSprite.prototype.update = function(dt) {
             this.url = "img/cat.png";
             this.pos = [0, 64*11];
             this.speed = 3;
-            this.frames = [2, 3];
+            this.frames = [1, 2, 3];
             this.priority = 9;
             break;
         case "crouch":
@@ -138,9 +138,12 @@ PlayerSprite.prototype.update = function(dt) {
             break;
         case "punch":
             this.url = "img/cat.png";
-            this.pos = [0, 64*9];
-            this.speed *= 2;
-            this.frames = [4, 5, 7, 8];
+            this.pos = [0, 64*11]; // punch is now actually a kick
+            this.speed *= 1.2;
+            this.frames = [2, 3, 2, 3];
+            // this.pos = [0, 64*9];
+            // this.speed *= 2;
+            // this.frames = [4, 5, 7, 8];
             this.priority = 9; // change this back to 7 when kick implemented to replace punch
             break;
         case "uppercut":
