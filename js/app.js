@@ -26,65 +26,112 @@ var framesToSkip = 0;
 var disableControls = false;
 var endFrameSkipDuration = 1000;
 var midPt;
+var whoLostLast = 0;
+var drawNow = false;
 function main() {
+
     var now = Date.now();
     var dt = (now - lastTime) / 1000.0;
 
-    if(shakeUntil > Date.now()){
-        preShake();
+    if(gameState === "menu"){
+        animatedScreen(now);
     }
+    else{
+        if(shakeUntil > Date.now()){
+            preShake();
+        }
 
-    if(framesToSkip === 0){
-        update(dt);
-        backgroundRender();
-        render();
+        if(framesToSkip === 0){
+            update(dt);
+            render();
+        }
+        if(framesToSkip > 0){
+        // skip a frame if hit was registered in either player's .damage method
+            framesToSkip--;
+        }
+
+        postShake();
+
+        lastTime = now;
     }
-    if(framesToSkip > 0){
-    // skip a frame if hit was registered in either player's .damage method
-        framesToSkip--;
-    }
-
-    postShake();
-
-    lastTime = now;
 
     requestAnimFrame(main);
 
 
 };
 
+function animatedScreen(now) {
 
-function init() {
-    ctx.imageSmoothingEnabled = false;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    var title = resources.get('img/title.png');
+    var enter = resources.get('img/pressenter.png');
     var bg1 = resources.get('img/parallax-forest-front-trees.png');
     var bg2 = resources.get('img/parallax-forest-middle-trees.png');
     var bg3 = resources.get('img/parallax-forest-lights.png');
     var bg4 = resources.get('img/parallax-forest-back-trees.png');
+    
+    var xpos = now * 0.3 % 272;
 
-    // tempCanvas to quadruple background size
-    var tempCanvas = document.createElement("canvas");
-    var tCtx = tempCanvas.getContext("2d");
-    tempCanvas.width = 272 * 3;
-    tempCanvas.height = 160;
+    //console.log(xpos)
 
-    tCtx.drawImage(bg4, 0, 0, bg4.width, bg4.height);
-    tCtx.drawImage(bg3, 0, 0, bg3.width, bg3.height);
-    tCtx.drawImage(bg2, 0, 0, bg2.width, bg2.height);
-    tCtx.drawImage(bg1, 0, 0, bg1.width, bg1.height);
+    ctx.save();
+    ctx.translate(-now * 0.005 % 272, 0);
+    for (var i = 0; i < 6; i++) {
+        ctx.drawImage(bg4, i * 272, 0);
+    }
+    ctx.restore();
 
-    terrainPattern = ctx.createPattern(tempCanvas, 'repeat'); 
+    
+    ctx.save();
+    ctx.drawImage(bg3, 0, 0);
+    ctx.restore();
 
-    document.getElementById('play-again').addEventListener('click', function() {
-        reset();
-    });
+    ctx.save();
+    ctx.translate(-now * 0.01 % 272, 0);
+    for (var i = -1; i < 2; i++) {
+        ctx.drawImage(bg2, i * 272, 0);
+    }
+    ctx.restore();
 
-    reset();
+    ctx.save();
+    ctx.translate(-now * 0.02 % 272, 0);
+    for (var i = -1; i < 2; i++) {
+        ctx.drawImage(bg1, i * 272, 0);
+    }
+    ctx.restore();
+
+    // ctx.globalAlpha = 0.6
+    // ctx.fillRect(0,0,canvas.width, canvas.height);
+
+    ctx.drawImage(title, 10,55);
+    ctx.drawImage(enter, 90,100);
+    ctx.restore();
+    //requestAnimFrame(animatedScreen);
+
+
+    if(input.isDown('ENTER')){
+        return gameState = "play";
+    }
+
+};
+
+
+function init() {
+
+    ctx.imageSmoothingEnabled = false;
+
+    reset(true);
     lastTime = Date.now();
     main();
 }
 
 resources.load([
+    'img/playagain.png',
+    'img/p1w.png',
+    'img/p2w.png',
+    'img/pressenter.png',
+    'img/title.png',
     'img/cat.png',
     'img/cat2.png',
     'img/catGreen.png',
@@ -113,7 +160,7 @@ var shotSpeed = 140;
 var invulnerableTime = 800;
 var regenAmt = .5;
 var maxHealth = 100;
-var startCapacity = 350;
+var startCapacity = 500;
 
 // Cooldowns
 var supershotCd = 1.5 * 1000;
@@ -342,7 +389,7 @@ var players = [player1, player2];
 var enemies = [];
 var explosions = [];
 
-var gameState = "play";
+var gameState = "menu";
 var gameStateSet = 0;
 var gameTime = 0;
 var isGameOver;
@@ -361,12 +408,16 @@ function update(dt) {
 
     midPt = (player1.pos[0]+player1.sprite.boxpos[0] + player2.pos[0] + player2.sprite.boxpos[0] + player2.sprite.boxsize[0])/2 - 136;
 
+    if(gameState === "over" && input.isDown('ENTER')){
+        reset();
+    }
+
     players.forEach(player => {
         if(Date.now() - gameStateSet < 1000){
             framesToSkip = 5
         }
 
-        if(player.health <= 0 && gameState !== "over"){
+        if(player.health <= 0){
             //shoot player off a bit when they die
             // if(player.velocityX > 0){
             //     player.velocityX += playerJump;
@@ -378,7 +429,6 @@ function update(dt) {
             // }if(player.velocityY <= 0){
             //     player.velocityY -= playerJump;
             // }
-            gameState = "over";
             gameOver(player);
         }
         //console.log(player.health <= (maxHealth - regenAmt))
@@ -882,7 +932,7 @@ function checkPlayerBounds(dt) {
             player.pos[0] = canvas.width - player.sprite.boxpos[0] - player.sprite.boxsize[0];
             if(player.capacity > bounceCapacity){
                 player.velocityX = -player.velocityX/4;
-                if(player.sprite.state === "hurt" && Date.now() > shakeUntil+ shakeCd && player.velocityX > groundBounceVelocity/16){
+                if(player.sprite.state === "hurt" && Date.now() > shakeUntil+ shakeCd && player.velocityX < -groundBounceVelocity/16){
                     //framesToSkip = 5;
                     shakeUntil = Date.now() + shakeDuration;
                 }
@@ -936,29 +986,11 @@ function checkPlayerBounds(dt) {
     })
 }
 
-function backgroundRender(){
-    // var bg1 = resources.get('img/parallax-forest-front-trees.png');
-    // var bg2 = resources.get('img/parallax-forest-middle-trees.png');
-    // var bg3 = resources.get('img/parallax-forest-lights.png');
-    // var bg4 = resources.get('img/parallax-forest-back-trees.png');
-
-    // var tempCanvas = document.createElement("canvas");
-    // var tCtx = tempCanvas.getContext("2d");
-    // tempCanvas.width = 272 * 3;
-    // tempCanvas.height = 160;
-    // tCtx.translate(midPt, 0);  
-    // // tCtx.drawImage(bg4, 0, 0, bg4.width, bg4.height);
-    // // tCtx.drawImage(bg3, 0, 0, bg3.width, bg3.height);
-    // // tCtx.drawImage(bg2, 0, 0, bg2.width, bg2.height);
-    // // tCtx.drawImage(bg1, 0, 0, bg1.width, bg1.height);
-    // tCtx.fillStyle = tCtx.createPattern(bg1, "repeat");;
-    // tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-    // terrainPattern = ctx.createPattern(tempCanvas, 'repeat'); 
-}
 
 // Draw everything
 function render() {
+
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // parallax background rendering first
     var bg1 = resources.get('img/parallax-forest-front-trees.png');
@@ -967,7 +999,7 @@ function render() {
     var bg4 = resources.get('img/parallax-forest-back-trees.png');
     
     ctx.save();
-    ctx.translate(-midPt/8, 0);
+    ctx.translate(-midPt/8 % 272, 0);
     for (var i = -1; i < 2; i++) {
         ctx.drawImage(bg4, i * 272, 0);
     }
@@ -978,23 +1010,30 @@ function render() {
     ctx.restore();
 
     ctx.save();
-    ctx.translate(-midPt/6, 0);
+    ctx.translate(-midPt/6 % 272, 0);
     for (var i = -1; i < 2; i++) {
         ctx.drawImage(bg2, i * 272, 0);
     }
     ctx.restore();
 
     ctx.save();
-    ctx.translate(-midPt/2, 0);
+    ctx.translate(-midPt/2 % 272, 0);
     for (var i = -1; i < 2; i++) {
         ctx.drawImage(bg1, i * 272, 0);
     }
     ctx.restore();
 
-
+    if(drawNow){
+        if(whoLostLast === 2){
+            ctx.drawImage(resources.get("img/p1w.png"), 50, 60)
+        }else{
+            ctx.drawImage(resources.get("img/p2w.png"), 50, 60)
+        }
+        ctx.drawImage(resources.get("img/playagain.png"), 95,100);
+        ctx.restore();
+    }
 
     //ctx.fillStyle = terrainPattern;
-    //ctx.fillRect(0, 0, canvas.width, canvas.height);
     //console.log(player1.shots[0] && player1.shots[0].sprite.status);
 
     // flip direction if opponent on other side
@@ -1091,21 +1130,51 @@ function renderEntity(entity, flipped) {
 
 // Game over
 function gameOver(player) {
-    gameStateSet = Date.now();
+    if(gameState !== "over"){
+        gameStateSet = Date.now();
+        gameState = "over";
+
+        setTimeout(()=>{
+            drawNow = true;
+            whoLostLast = player.who;
+        },1500);
+    }
+
     player.sprite.state = "dead"; 
     disableControls = true;
-    setTimeout(()=>{
-        document.getElementById('game-over').style.display = 'block';
-        document.getElementById('game-over-overlay').style.display = 'block';
-        },1500);
+}
+
+function fadeOut(){
+     var steps = 50;
+     var r = 50;
+     var g = 100;
+     var b = 50;
+
+     var dr = (255 - r) / steps,
+        dg = (255 - g) / steps,
+        db = (255 - b) / steps,
+        i = 0,
+        interval = setInterval(function() {
+            ctx.fillStyle = 'rgb(' + Math.round(r + dr * i) + ','
+                                   + Math.round(g + dg * i) + ','
+                                   + Math.round(b + db * i) + ')';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            i++;
+            if(i === steps) {
+                clearInterval(interval);
+            }
+        }, 60);
 }
 
 // Reset game to original state
-function reset() {
-    document.getElementById('game-over').style.display = 'none';
-    document.getElementById('game-over-overlay').style.display = 'none';
+function reset(bool) {
     disableControls = false;
-    gameState = "play;"
+    drawNow = false;
+    if(bool){
+        gameState= "menu";
+    }else{
+        gameState = "play";
+    }
 
     players.forEach(player => {
         player.health = maxHealth;     
