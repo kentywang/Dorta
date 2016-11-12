@@ -25,22 +25,31 @@ var lastTime;
 var framesToSkip = 0;
 var disableControls = false;
 var endFrameSkipDuration = 1000;
+var midPt;
 function main() {
     var now = Date.now();
     var dt = (now - lastTime) / 1000.0;
 
-    // skip a frame if hit was registered in either player's .damage method
+    if(shakeUntil > Date.now()){
+        preShake();
+    }
+
     if(framesToSkip === 0){
         update(dt);
         render();
     }
     if(framesToSkip > 0){
+    // skip a frame if hit was registered in either player's .damage method
         framesToSkip--;
     }
+
+    postShake();
 
     lastTime = now;
 
     requestAnimFrame(main);
+
+
 };
 
 
@@ -81,7 +90,10 @@ resources.load([
     'img/parallax-forest-lights.png',
     'img/parallax-forest-back-trees.png',
     'img/parallax-forest-middle-trees.png',
-    'img/parallax-forest-front-trees.png'
+    'img/parallax-forest-front-trees.png',
+    'img/empty.png',
+    'img/damage.png',
+    'img/health.png',
 ]);
 resources.onReady(init);
 
@@ -103,6 +115,7 @@ var kickCd = 1 * 1000;
 var punchCd = .6 * 1000;
 var shotChargeTime = .5 * 1000;
 
+
 // Physics
 var playerJump = 300;
 var gravityAccelerationY = 800;
@@ -112,9 +125,23 @@ var bounceCapacity= 100;
 var bounceCapacity2= 450;
 var groundBounceVelocity = 450;
 
+var shakeCd = 1 * 1000;
+var shakeDuration = 200;
+var shakeUntil = 0;
+
 // Utility functions
 function numberBetween(n, m){
     return Math.ceil(Math.random() * (m - n) + n);
+}
+// Shake, shake, shake
+function preShake() {
+  ctx.save();
+  var dx = Math.random()*2;
+  var dy = Math.random()*2;
+  ctx.translate(dx, dy);  
+}
+function postShake() {
+  ctx.restore();
 }
 
 // Damage mechanics (using arrow function to preserve "this" context)
@@ -126,17 +153,17 @@ function dmg(player){
         }
         if(this.capacity < bounceCapacity2){
             switch(whereTo){
-            case("up"):
-                this.velocityY = -this.capacity/1.5;
+            case("sideUp"):
+                this.velocityY = -this.capacity/4;
 
                 if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/12;
+                    this.velocityX = -this.capacity/6;
                 }else{
-                    this.velocityX = this.capacity/12;
+                    this.velocityX = this.capacity/6;
                 }
                 break;
             case("down"):
-                this.velocityY = this.capacity/1.5;
+                this.velocityY = this.capacity;
 
                 if(this.direction === "RIGHT"){
                     this.velocityX = -this.capacity/4;
@@ -162,17 +189,17 @@ function dmg(player){
             }
         }else{
             switch(whereTo){
-            case("up"):
-                this.velocityY = -this.capacity/1.5;
+            case("sideUp"):
+                this.velocityY = -this.capacity/2;
 
                 if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/12;
+                    this.velocityX = -this.capacity/4;
                 }else{
-                    this.velocityX = this.capacity/12;
+                    this.velocityX = this.capacity/4;
                 }
                 break;
             case("down"):
-                this.velocityY = Math.min(groundBounceVelocity, this.capacity/1.5);
+                this.velocityY = groundBounceVelocity +this.capacity;
 
                 if(this.direction === "RIGHT"){
                     this.velocityX = -this.capacity/4;
@@ -181,7 +208,7 @@ function dmg(player){
                 }
                 break;
             case("sideDown"):
-                this.velocityY = Math.min(groundBounceVelocity, this.capacity/1.5);
+                this.velocityY = Math.max(groundBounceVelocity, this.capacity);
 
                 if(this.direction === "RIGHT"){
                     this.velocityX = -this.capacity/2;
@@ -190,7 +217,7 @@ function dmg(player){
                 }
                 break;
             default:
-                this.velocityY = Math.min(groundBounceVelocity)
+                this.velocityY = -this.capacity/4
                 if(this.direction === "RIGHT"){
                     this.velocityX = -this.capacity/2;
                 }else{
@@ -214,7 +241,7 @@ function dmg(player){
             framesToSkip = 1;
             return; // return instead of just breaking because don't want to give inv frames or hurt status
         case ("uppercut"):
-            pushback(numberBetween(8,10), "up");
+            pushback(numberBetween(8,10), "sideUp");
             break;
         case ("kick"):
             pushback(numberBetween(11,13));
@@ -270,7 +297,8 @@ var player1 = {
     },
     damaged: dmg,
     invulnerable: Date.now(),
-    lastRegen: Date.now()
+    lastRegen: Date.now(),
+    lastStableHp: maxHealth
 };
 
 var player2 = {
@@ -299,7 +327,8 @@ var player2 = {
     },
     damaged: dmg,
     invulnerable: Date.now(),
-    lastRegen: Date.now()
+    lastRegen: Date.now(),
+    lastStableHp: maxHealth
 };
 
 var players = [player1, player2];
@@ -323,12 +352,25 @@ var twoCP = document.getElementById('two-cp');
 function update(dt) {
     gameTime += dt;
 
+    midPt = (player1.pos[0] + player2.pos[0])/2;
+
     players.forEach(player => {
         if(Date.now() - gameStateSet < 1000){
-            framesToSkip = 10
+            framesToSkip = 5
         }
 
         if(player.health <= 0 && gameState !== "over"){
+            //shoot player off a bit when they die
+            // if(player.velocityX > 0){
+            //     player.velocityX += playerJump;
+            // }if(player.velocityX < 0){
+            //     player.velocityX -= playerJump;
+            // }
+            // if(player.velocityY > 0){
+            //     player.velocityY += playerJump;
+            // }if(player.velocityY <= 0){
+            //     player.velocityY -= playerJump;
+            // }
             gameState = "over";
             gameOver(player);
         }
@@ -403,7 +445,7 @@ function handleInput(dt) {
                 }
                 
                 else if(input.isDown(player.keys.BASIC)) {
-                    console.log(Date.now() - player.lastPunch)
+                    //console.log(Date.now() - player.lastPunch)
                     if(Date.now() - player.lastPunch < punchCd){ 
                         break;}
                     player.sprite.state = "punch";
@@ -811,8 +853,9 @@ function checkPlayerBounds(dt) {
             player.pos[0] = - player.sprite.boxpos[0];
             if(player.capacity > bounceCapacity){
                 player.velocityX = -player.velocityX/4;
-                if(player.sprite.state === "hurt"){
-                    framesToSkip = 5;
+                if(player.sprite.state === "hurt" && Date.now() > shakeUntil+ shakeCd && player.velocityX > groundBounceVelocity/16){
+                    //framesToSkip = 5;
+                    shakeUntil = Date.now() + shakeDuration;
                 }
             }else{
                 player.velocityX = 0;
@@ -822,8 +865,9 @@ function checkPlayerBounds(dt) {
             player.pos[0] = canvas.width - player.sprite.boxpos[0] - player.sprite.boxsize[0];
             if(player.capacity > bounceCapacity){
                 player.velocityX = -player.velocityX/4;
-                if(player.sprite.state === "hurt"){
-                    framesToSkip = 5;
+                if(player.sprite.state === "hurt" && Date.now() > shakeUntil+ shakeCd && player.velocityX > groundBounceVelocity/16){
+                    //framesToSkip = 5;
+                    shakeUntil = Date.now() + shakeDuration;
                 }
             }else{
                 player.velocityX = 0;
@@ -835,8 +879,9 @@ function checkPlayerBounds(dt) {
             player.pos[1] = - player.sprite.boxpos[1];
             if(player.capacity > bounceCapacity){
                 player.velocityY = -player.velocityY/4;
-                if(player.sprite.state === "hurt"){
-                    framesToSkip = 5;
+                if(player.sprite.state === "hurt" && Date.now() > shakeUntil+ shakeCd){
+                    //framesToSkip = 5;
+                    shakeUntil = Date.now() + shakeDuration;
                 }
             }else{
                 player.velocityY = 0;
@@ -846,8 +891,9 @@ function checkPlayerBounds(dt) {
             if(player.capacity > bounceCapacity && player.sprite.state === "hurt" && player.velocityY > groundBounceVelocity){
                 //console.log("times", player.velocityY )
                 player.velocityY = -player.velocityY/4;
-                if(player.sprite.state === "hurt"){
-                    framesToSkip = 5;
+                if(player.sprite.state === "hurt" && Date.now() > shakeUntil+ shakeCd){
+                    //framesToSkip = 5;
+                    shakeUntil = Date.now() + shakeDuration;
                 }
             }else{
                 player.velocityY = 0;
@@ -904,7 +950,46 @@ function render() {
 
     renderEntities(player1.shots);
     renderEntities(player2.shots);
-    renderEntities(explosions);
+    // renderEntities(explosions);
+    renderHealth(player1);
+    renderHealth(player2, true);
+};
+
+function renderHealth(entity, flipped) {
+    var barLen = 72;
+
+    var amt = entity.health/100 * barLen;
+
+    var stableAmt = entity.lastStableHp/100 * barLen;
+    if(entity.lastStableHp <= entity.health){
+        entity.lastStableHp = entity.health;
+    }
+    // if(damageAmt <= amt){
+    //     damageAmt = amt
+    //     entity.lastStableHp = damageAmt;
+    // }
+
+    ctx.save();
+    if(!flipped){
+        ctx.translate(30, 15);
+        ctx.drawImage(resources.get("img/empty.png"),0,0,72,6,0,0,72,6);
+        if(entity.invulnerable > Date.now() - invulnerableTime){
+            ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
+        }else{
+            ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
+            entity.lastStableHp -= .8;
+        }
+        ctx.drawImage(resources.get("img/health.png"),0,0,amt,6,0,0,amt,6);
+    }else{
+        // ctx.translate(240, 15);
+        // ctx.scale(-1, 1);
+        // ctx.drawImage(resources.get("img/empty.png"),0,0,72,6,0,0,-72,6);
+        // ctx.drawImage(resources.get("img/damage.png"),0,0,72,6,0,0,-72,6);
+        // ctx.drawImage(resources.get("img/health.png"),0,0,72,6,0,0,-72,6);
+    }
+
+    //damageAmt -= 0.1
+    ctx.restore();
 };
 
 function renderEntities(list) {
