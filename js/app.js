@@ -176,7 +176,7 @@ function dmg(player){
             break;
         case ("moving"):
             // have multiple cases here for difference levels of shot
-            pushback(numberBetween(16,21));
+            pushback(player.speed/8);
             player.sprite.state = "hit";
             break;
         default:
@@ -336,7 +336,8 @@ function handleInput(dt) {
                     player.shots.push({ pos: [x, y],
                            direction: player.direction,
                            sprite: new Sprite('img/shot.png', [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3]),
-                           fireTime: Date.now()
+                           fireTime: Date.now(),
+                           speed: shotSpeed
                        });
                     //console.log(player.shots[player.shots.length-1].direction)
                 }
@@ -564,7 +565,7 @@ function updateEntities(dt) {
 
     players.forEach(player => {
         // Update the player sprite animation
-        //console.log(player1.shots.length, player2.shots.length)
+        console.log(player1.shots.length, player2.shots.length)
         player.sprite.update(dt);
 
         // Update all the shots
@@ -575,8 +576,8 @@ function updateEntities(dt) {
             var shot = player.shots[i];
 
             switch(shot.direction) {
-                case 'LEFT': shot.pos[0] -= shotSpeed * dt; break;
-                case 'RIGHT': shot.pos[0] += shotSpeed * dt; break;
+                case 'LEFT': shot.pos[0] -= shot.speed * dt; break;
+                case 'RIGHT': shot.pos[0] += shot.speed * dt; break;
                 default:
                     shot.pos[0] = 0;
             }
@@ -692,7 +693,7 @@ function checkCollisions(dt) {
                     //break;
                 }
             }
-            console.log(player.who, pos) 
+            // console.log(player.who, pos) 
             if(boxCollides(pos, size, playerPos, playerSize) && (player.invulnerable < Date.now() - invulnerableTime)){
                 if(player.sprite.priority < shots[i].sprite.priority || player.sprite.state === "crouch"){
                     player.damaged(shots[i]);
@@ -700,10 +701,11 @@ function checkCollisions(dt) {
                 }else if(player.sprite.priority > shots[i].sprite.priority){
                     // REFLECT TIMEEEE!
                     player.shots.push({ 
-                        pos: [shots[i].pos[0], shots[i].pos[1]],
+                        pos: [shots[i].pos[0], shots[i].pos[1]],    // fucking arrays...
                         direction: player.direction,
                         sprite: new Sprite('img/shot.png', [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3], "horizontal", false, "moving"),
-                        fireTime: Date.now() - shotChargeTime
+                        fireTime: Date.now() - shotChargeTime,
+                        speed: shots[i].speed+35
                        });
                     shots.splice(i--, 1);
                     
