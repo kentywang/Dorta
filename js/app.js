@@ -269,17 +269,6 @@ function update(dt) {
     handleInput(dt);
     processPhysics(dt);
     updateEntities(dt);
-
-    // It gets harder over time by adding enemies using this
-    // equation: 1-.993^gameTime
-    // if(Math.random() < .4) {
-    //     enemies.push({
-    //         pos: [canvas.width,
-    //               Math.random() * canvas.height - 32],
-    //         sprite: new PlayerSprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12,28], 6, [0, 1, 2, 3])
-    //     });
-    // }
-
     checkCollisions(dt);
 
     oneHP.innerHTML = player1.health;
@@ -575,6 +564,7 @@ function updateEntities(dt) {
 
     players.forEach(player => {
         // Update the player sprite animation
+        //console.log(player1.shots.length, player2.shots.length)
         player.sprite.update(dt);
 
         // Update all the shots
@@ -608,18 +598,6 @@ function updateEntities(dt) {
                 i--;
             }
         }
-
-        // Update all the enemies
-        // for(var i=0; i<enemies.length; i++) {
-        //     enemies[i].pos[0] -= enemySpeed * dt;
-        //     enemies[i].sprite.update(dt);
-
-        //     // Remove if offscreen
-        //     if(enemies[i].pos[0] + enemies[i].sprite.size[0] < 0) {
-        //         enemies.splice(i, 1);
-        //         i--;
-        //     }
-        // }
 
         // // Update all the explosions
         // for(var i=0; i<explosions.length; i++) {
@@ -678,78 +656,62 @@ function checkCollisions(dt) {
         } 
     }
     
-        console.log(player1.shots, player2.shots)
     // Run collision detection for all players and shots
     // Factor in hitbox size
     players.forEach(player => {
         var shots = [];
+        var ownShots = [];
+
         if(player.who === 1){
             shots = player2.shots;
+            ownShots = player1.shots;
+            //console.log(shots)
         }else{
             shots = player1.shots;
+            ownShots = player2.shots;
         }
+
         for(var i=0; i<shots.length; i++) {
 
-        var pos = [shots[i].pos[0] + shots[i].sprite.boxpos[0], shots[i].pos[1] + shots[i].sprite.boxpos[1]];
-        var size = shots[i].sprite.boxsize;
+            var pos = [shots[i].pos[0] + shots[i].sprite.boxpos[0], shots[i].pos[1] + shots[i].sprite.boxpos[1]];
+            var size = shots[i].sprite.boxsize;
 
-        var playerPos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
-        var playerSize = player.sprite.boxsize;
+            var playerPos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
+            var playerSize = player.sprite.boxsize;
 
-        // for(var j=0; j<bullets.length; j++) {
-        //     var pos2 = bullets[j].pos;
-        //     var size2 = bullets[j].sprite.size;
+            for(var j=0; j<ownShots.length; j++) {
+                var pos2 = [ownShots[j].pos[0] + ownShots[j].sprite.boxpos[0], ownShots[j].pos[1] + ownShots[j].sprite.boxpos[1]];
+                var size2 = ownShots[j].sprite.boxsize;
 
-        //     if(boxCollides(pos, size, pos2, size2)) {
-        //         // Remove the enemy
-        //         shot.splice(i, 1); // will this mutate original array? Hoping it does
-        //         i--;
-
-        //         // Add score
-        //         score += 100;
-
-        //         // Add an explosion
-        //         explosions.push({
-        //             pos: pos,
-        //             sprite: new Sprite('img/sprites.png',
-        //                                [0, 117],
-        //                                [39, 39],
-        //                                16,
-        //                                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-        //                                null,
-        //                                true)
-        //         });
-
-        //         // Remove the bullet and stop this iteration
-        //         bullets.splice(j, 1);
-        //         break;
-        //     }
-        // }
-
-        // what about shot/shot collision??????
-
-        if(boxCollides(pos, size, playerPos, playerSize) && (player.invulnerable < Date.now() - invulnerableTime)){
-            if(player.sprite.priority < shots[i].sprite.priority){
-                    player.damaged(shots[i]);
-                    //console.log(shots[i].sprite.status);
-                    // shots[i].sprite.update(dt);
-            }else if(player.sprite.priority > shots[i].sprite.priority){
-                if(player.sprite.state !== "crouch"){
-                    
-                    // REFLECT TIMEEEE!
-
-                    player.shots.push({ 
-                        pos: [shots[i].pos[0], [shots[i].pos[1]]],
-                        direction: player.direction,
-                        sprite: new Sprite('img/shot.png', [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3]),
-                        fireTime: Date.now() - shotChargeTime
-                       });
-                    shots.splice(i, 1);
-                    i--;
+                if(boxCollides(pos, size, pos2, size2)) {
+                    // Remove the shots if they collide
+                    shots[i].sprite.state = "hit";
+                    shots.splice(i--, 1); 
+                    ownShots[j].sprite.state = "hit";
+                    ownShots.splice(j--, 1);
+                    //break;
                 }
             }
+            console.log(player.who, pos) 
+            if(boxCollides(pos, size, playerPos, playerSize) && (player.invulnerable < Date.now() - invulnerableTime)){
+                if(player.sprite.priority < shots[i].sprite.priority || player.sprite.state === "crouch"){
+                    player.damaged(shots[i]);
+
+                }else if(player.sprite.priority > shots[i].sprite.priority){
+                    // REFLECT TIMEEEE!
+                    player.shots.push({ 
+                        pos: [shots[i].pos[0], shots[i].pos[1]],
+                        direction: player.direction,
+                        sprite: new Sprite('img/shot.png', [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3], "horizontal", false, "moving"),
+                        fireTime: Date.now() - shotChargeTime
+                       });
+                    shots.splice(i--, 1);
+                    
+                }
+            }
+
         }
-    }})
+    })
 }
 
 function checkPlayerBounds(dt) {

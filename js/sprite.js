@@ -1,4 +1,4 @@
-function Sprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once) {
+function Sprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once, state) {
     this.state;
     this.flipped = false;
 
@@ -22,7 +22,7 @@ Sprite.prototype.update = function(dt) {
         case ("moving"):
             this.url = "img/shot.png";
             this.pos = [64 * 4, 0];
-            this.priority = 6;
+            this.priority = 8;
             this.frames = [0, 1, 2, 3];
             break;
         case ("hit"):
@@ -32,13 +32,13 @@ Sprite.prototype.update = function(dt) {
             this.priority = 0;
             this.speed = 3;
             this.frames = [0, 1, 2];
-            this.once = false;
+            this.once = true;
             break;
         default:
             this.url = "img/shot.png";
             this.state = "moving";
             this.pos = [64 * 4, 0];
-            this.priority = 6;
+            this.priority = 8;
             this.frames = [0, 1, 2, 3];
     }
 
@@ -98,7 +98,7 @@ Sprite.prototype.render = function(ctx) {
 }
 
 
-function PlayerSprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once) {
+function PlayerSprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once, state) {
     this.state;
 
     this.priority = 0;  // this prop determines which attack has precedence
@@ -123,25 +123,25 @@ PlayerSprite.prototype.update = function(dt) {
             this.frames = [8];
             this.priority = 10;
             break;
-        case "crouch":
-            this.url = "img/cat.png";
-            this.pos = [0, 64*7];
-            this.frames = [2];
-            this.priority = 9;
-            break;
         case "kick":
             this.url = "img/cat.png";
             this.pos = [0, 64*11];
             this.speed = 3;
             this.frames = [2, 3];
-            this.priority = 8;
+            this.priority = 9;
+            break;
+        case "crouch":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*7];
+            this.frames = [2];
+            this.priority = 7;
             break;
         case "punch":
             this.url = "img/cat.png";
             this.pos = [0, 64*9];
             this.speed *= 2;
             this.frames = [4, 5, 7, 8];
-            this.priority = 7;
+            this.priority = 9; // change this back to 7 when kick implemented to replace punch
             break;
         case "uppercut":
             this.url = "img/cat.png";
