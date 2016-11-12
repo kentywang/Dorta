@@ -112,8 +112,8 @@ function numberBetween(n, m){
 function dmg(player){
     var pushback = (pts, whereTo) => {
         if(pts){    // ensure crouch doesn't do dmg
-            this.health -= (pts * numberBetween(0.8, 1.2));
-            this.capacity += (pts * numberBetween(1.8, 2.2));
+            this.health -= pts;
+            this.capacity += pts * 1.8;
         }
 
         switch(whereTo){
@@ -137,9 +137,9 @@ function dmg(player){
                 break;
             default:
                 if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity;
+                    this.velocityX = -this.capacity/2;
                 }else{
-                    this.velocityX = this.capacity;
+                    this.velocityX = this.capacity/2;
                 }
         }
         framesToSkip = 10;
@@ -157,26 +157,27 @@ function dmg(player){
             framesToSkip = 1;
             return; // return instead of just breaking because don't want to give inv frames or hurt status
         case ("uppercut"):
-            pushback(18, "up");
+            pushback(numberBetween(16,20), "up");
             break;
         case ("kick"):
-            pushback(12);
+            pushback(numberBetween(11,13));
             break;
         case ("downkick"):
-            pushback(15, "down");
+            pushback(numberBetween(12,18), "down");
             break;
         case ("punch"):
-            pushback(10);
+            pushback(11);
             break;
         case ("airkick"):
-            pushback(15);
+            pushback(12);
             break;
         case ("sidekick"):
-            pushback(15);
+            pushback(numberBetween(11,17));
             break;
-        case ("supershot"):
+        case ("moving"):
             // have multiple cases here for difference levels of shot
-            pushback(25);
+            pushback(numberBetween(16,21));
+            player.sprite.state = "hit";
             break;
         default:
             break;
@@ -596,11 +597,13 @@ function updateEntities(dt) {
             }else{
                 shot.sprite.flipped = false;
             }
+
             player.shots[i].sprite.update(dt);
 
+                //console.log(shot.pos)
             // Remove the shot if it goes offscreen
             if(shot.pos[1] < 0 || shot.pos[1] > canvas.height ||
-               shot.pos[0] > canvas.width) {
+               shot.pos[0] > canvas.width || shot.pos[0] + shot.sprite.boxsize[0] + shot.sprite.boxpos[0]< 0) {
                 player.shots.splice(i, 1);
                 i--;
             }
@@ -675,15 +678,23 @@ function checkCollisions(dt) {
         } 
     }
     
-    // Run collision detection for all enemies and bullets
+        console.log(player1.shots, player2.shots)
+    // Run collision detection for all players and shots
     // Factor in hitbox size
-    //players.forEach(player => {
-        // for(var i=0; i<enemies.length; i++) {
-        // var pos = [enemies[i].pos[0] + enemies[i].sprite.boxpos[0], enemies[i].pos[1] + enemies[i].sprite.boxpos[1]];
-        // var size = enemies[i].sprite.boxsize;
+    players.forEach(player => {
+        var shots = [];
+        if(player.who === 1){
+            shots = player2.shots;
+        }else{
+            shots = player1.shots;
+        }
+        for(var i=0; i<shots.length; i++) {
 
-        // var playerPos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
-        // var playerSize = player.sprite.boxsize;
+        var pos = [shots[i].pos[0] + shots[i].sprite.boxpos[0], shots[i].pos[1] + shots[i].sprite.boxpos[1]];
+        var size = shots[i].sprite.boxsize;
+
+        var playerPos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
+        var playerSize = player.sprite.boxsize;
 
         // for(var j=0; j<bullets.length; j++) {
         //     var pos2 = bullets[j].pos;
@@ -691,7 +702,7 @@ function checkCollisions(dt) {
 
         //     if(boxCollides(pos, size, pos2, size2)) {
         //         // Remove the enemy
-        //         enemies.splice(i, 1);
+        //         shot.splice(i, 1); // will this mutate original array? Hoping it does
         //         i--;
 
         //         // Add score
@@ -715,11 +726,30 @@ function checkCollisions(dt) {
         //     }
         // }
 
-    //         if(boxCollides(pos, size, playerPos, playerSize)) {
-    //             gameOver();
-    //         }
-    //     }
-    // })
+        // what about shot/shot collision??????
+
+        if(boxCollides(pos, size, playerPos, playerSize) && (player.invulnerable < Date.now() - invulnerableTime)){
+            if(player.sprite.priority < shots[i].sprite.priority){
+                    player.damaged(shots[i]);
+                    //console.log(shots[i].sprite.status);
+                    // shots[i].sprite.update(dt);
+            }else if(player.sprite.priority > shots[i].sprite.priority){
+                if(player.sprite.state !== "crouch"){
+                    
+                    // REFLECT TIMEEEE!
+
+                    player.shots.push({ 
+                        pos: [shots[i].pos[0], [shots[i].pos[1]]],
+                        direction: player.direction,
+                        sprite: new Sprite('img/shot.png', [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3]),
+                        fireTime: Date.now() - shotChargeTime
+                       });
+                    shots.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+    }})
 }
 
 function checkPlayerBounds(dt) {
@@ -769,7 +799,7 @@ function checkPlayerBounds(dt) {
 function render() {
     ctx.fillStyle = terrainPattern;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    //console.log(player1.shots[0] && player1.shots[0].sprite.status);
 
     // flip direction if opponent on other side
     if(player1.pos[0] < player2.pos[0]){
@@ -795,7 +825,7 @@ function render() {
 
     renderEntities(player1.shots);
     renderEntities(player2.shots);
-    renderEntities(enemies);
+    //renderEntities(enemies);
     renderEntities(explosions);
 };
 
@@ -805,6 +835,7 @@ function renderEntities(list) {
         ctx.translate(list[i].pos[0], list[i].pos[1]);
         //  this will check if enough time has passed before rendering shot
         if(Date.now() - list[i].fireTime > shotChargeTime){
+            //console.log(list[i].sprite.status)
             list[i].sprite.render(ctx);
         }
         ctx.restore();

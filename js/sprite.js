@@ -17,19 +17,28 @@ function Sprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once) {
 };
 
 Sprite.prototype.update = function(dt) {
+    //console.log("whaaaa", this.state)
      switch(this.state){
         case ("moving"):
             this.url = "img/shot.png";
             this.pos = [64 * 4, 0];
+            this.priority = 6;
             this.frames = [0, 1, 2, 3];
+            break;
         case ("hit"):
+        //console.log("mmmmmmmmm")
             this.url = "img/shot.png";
             this.pos = [64 * 4, 64 * 2];
-            this.frames = [0, 1, 2, 3];
+            this.priority = 0;
+            this.speed = 3;
+            this.frames = [0, 1, 2];
+            this.once = false;
+            break;
         default:
             this.url = "img/shot.png";
             this.state = "moving";
             this.pos = [64 * 4, 0];
+            this.priority = 6;
             this.frames = [0, 1, 2, 3];
     }
 
@@ -46,14 +55,15 @@ Sprite.prototype.render = function(ctx) {
 
         if(this.once && idx >= max) {
             this.done = true;
+            //console.log;
             return;
         }
-        // if(idx >= max) {    // these are the actions that cannot be interrupted once begun and reset to idle after completion
-        //     if(this.state === "supershot" || this.state === "kick"){
-        //         this.state = "idle";
-        //     }
-        //     this._index = 0;
-        // }
+        if(idx >= max) {    // these are the actions that cannot be interrupted once begun and reset to idle after completion
+            if(this.state === "hit"){
+                return;
+            }
+            this._index = 0;
+        }
     }
     else {
         frame = 0;
@@ -62,7 +72,7 @@ Sprite.prototype.render = function(ctx) {
 
     var x = this.pos[0];
     var y = this.pos[1];
-
+    //console.log("y is: ", this.pos[1] )
     if(this.dir == 'vertical') {
         y += frame * this.size[1];
     }
@@ -91,6 +101,7 @@ Sprite.prototype.render = function(ctx) {
 function PlayerSprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once) {
     this.state;
 
+    this.priority = 0;  // this prop determines which attack has precedence
     this.pos = pos;
     this.size = size;
     this.boxpos = boxpos;
