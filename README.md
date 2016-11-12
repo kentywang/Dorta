@@ -1,2 +1,2 @@
 # Dorta
-A fighting game, inspired by Dota, Dragon Ball Z, and Zelda.
+A fighting game, inspired by Dota, Super Smash Bros, Dragon Ball Z, and Zelda.

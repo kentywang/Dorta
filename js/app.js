@@ -27,7 +27,7 @@ function main() {
     var now = Date.now();
     var dt = (now - lastTime) / 1000.0;
 
-    // skip a frame if hit was registered in eithe player's .damage method
+    // skip a frame if hit was registered in either player's .damage method
     if(framesToSkip === 0){
         update(dt);
         render();
@@ -103,33 +103,70 @@ var gravityAccelerationY = 800;
 var gravityAccelerationX = 20;
 var groundHeight = 5;
 
-// Damage mechanics (using arrow function to preserve "this" context)
-function dmg(sprite){
-    var pushback = (pts) => {
-        this.health -= pts;
-        this.capacity += (pts * 2);
+// Utility functions
+function numberBetween(n, m){
+    return Math.ceil(Math.random() * (m - n) + n);
+}
 
-        if(this.direction === "RIGHT"){
-            this.velocityX = -this.capacity;
-        }else{
-            this.velocityX = this.capacity;
+// Damage mechanics (using arrow function to preserve "this" context)
+function dmg(player){
+    var pushback = (pts, whereTo) => {
+        if(pts){    // ensure crouch doesn't do dmg
+            this.health -= (pts * numberBetween(0.8, 1.2));
+            this.capacity += (pts * numberBetween(1.8, 2.2));
         }
 
+        switch(whereTo){
+            case("up"):
+                this.velocityY = -this.capacity/1.5;
+
+                if(this.direction === "RIGHT"){
+                    this.velocityX = -this.capacity/12;
+                }else{
+                    this.velocityX = this.capacity/12;
+                }
+                break;
+            case("down"):
+                this.velocityY = this.capacity/1.5;
+
+                if(this.direction === "RIGHT"){
+                    this.velocityX = -this.capacity/4;
+                }else{
+                    this.velocityX = this.capacity/4;
+                }
+                break;
+            default:
+                if(this.direction === "RIGHT"){
+                    this.velocityX = -this.capacity;
+                }else{
+                    this.velocityX = this.capacity;
+                }
+        }
         framesToSkip = 10;
     }
 
-    switch(sprite.state){
+    switch(player.sprite.state){
+        case ("crouch"):
+            if(this.direction === "RIGHT"){
+                this.velocityX = -playerJump /4;
+                player.velocityX = playerJump /4;
+            }else{
+                this.velocityX = playerJump /4;
+                player.velocityX = -playerJump /4;
+            }
+            framesToSkip = 1;
+            return; // return instead of just breaking because don't want to give inv frames or hurt status
         case ("uppercut"):
-            pushback(25);
+            pushback(18, "up");
             break;
         case ("kick"):
-            pushback(10);
+            pushback(12);
             break;
         case ("downkick"):
-            pushback(20);
+            pushback(15, "down");
             break;
         case ("punch"):
-            pushback(5);
+            pushback(10);
             break;
         case ("airkick"):
             pushback(15);
@@ -139,12 +176,11 @@ function dmg(sprite){
             break;
         case ("supershot"):
             // have multiple cases here for difference levels of shot
-            pushback(35);
+            pushback(25);
             break;
         default:
             break;
     }
-
     this.invulnerable = Date.now();
     this.sprite.state = "hurt";
 }
@@ -625,17 +661,16 @@ function checkCollisions(dt) {
     if(boxCollides(playerPos[0], playerSize[0], playerPos[1], playerSize[1]) && (player1.invulnerable < Date.now() - invulnerableTime && player2.invulnerable < Date.now() - invulnerableTime)) {
         if(player1.sprite.priority > player2.sprite.priority){
             if(player1.sprite.priority > 0){
-            //console.log(player1.sprite.state)
-                player2.damaged(player1.sprite);
+                player2.damaged(player1);
             }
         }else if(player1.sprite.priority < player2.sprite.priority){
             if(player2.sprite.priority > 0){
-                player1.damaged(player2.sprite);
+                player1.damaged(player2);
             }
         }else{
             if(player1.sprite.priority > 0){
-                player2.damaged(player1.sprite);
-                player1.damaged(player2.sprite);
+                player2.damaged(player1);
+                player1.damaged(player2);
             }
         } 
     }
@@ -720,7 +755,7 @@ function checkPlayerBounds(dt) {
             player.sprite.speed = normalSpeed;
 
 
-            if(player.sprite.state !== "supershot" && player.sprite.state !== "hurt" && player.sprite.state !== "kick"  && player.sprite.state !== "punch"){   // these are the actions that cannot be interrupted once begun
+            if(player.sprite.state !== "supershot" && player.sprite.state !== "hurt" && player.sprite.state !== "kick"  && player.sprite.state !== "punch" && player.sprite.state !== "crouch"){   // these are the actions that cannot be interrupted once begun
                 player.sprite.state = "idle";
             }
 
