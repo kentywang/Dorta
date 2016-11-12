@@ -106,29 +106,30 @@ function PlayerSprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once)
 
 PlayerSprite.prototype.update = function(dt) {
     switch(this.state){
-        case "uppercut":
-            this.url = "img/cat.png";
-            this.pos = [0, 64*8];
-            this.frames = [6, 7];
-            this.priority = 9;
-            break;
         case "kick":
             this.url = "img/cat.png";
             this.pos = [0, 64*11];
             this.speed = 3;
             this.frames = [2, 3];
-            this.priority = 8;
+            this.priority = 9;
             break;
         case "downkick":
             this.url = "img/cat.png";
             this.pos = [0, 64*3];
             this.frames = [8];
-            this.priority = 7;
+            this.priority = 8;
             break;
         case "punch":
             this.url = "img/cat.png";
             this.pos = [0, 64*9];
+            this.speed *= 2;
             this.frames = [4, 5, 7, 8];
+            this.priority = 7;
+            break;
+        case "uppercut":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*8];
+            this.frames = [6, 7];
             this.priority = 6;
             break;
         case "airkick":
@@ -185,7 +186,7 @@ PlayerSprite.prototype.update = function(dt) {
             this.url = "img/cat.png"
             this.pos = [0, 64*4];
             this.frames = [1, 2]
-            this.speed *= 0.5;
+            this.speed *= 0.25;
             this.priority = -3;
             break;
         default:
@@ -212,7 +213,7 @@ PlayerSprite.prototype.render = function(ctx) {
             return;
         }
         if(idx >= max) {    // these are the actions that cannot be interrupted once begun and reset to idle after completion
-            if(this.state === "supershot" || this.state === "kick"){
+            if(this.state === "supershot" || this.state === "kick" || this.state === "punch"){
                 this.state = "idle";
             }
             this._index = 0;

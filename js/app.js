@@ -22,14 +22,22 @@ document.body.appendChild(canvas);
 
 // The main game loop
 var lastTime;
+var framesToSkip = 0;
 function main() {
     var now = Date.now();
     var dt = (now - lastTime) / 1000.0;
 
-    update(dt);
-    render();
+    // skip a frame if hit was registered in eithe player's .damage method
+    if(framesToSkip === 0){
+        update(dt);
+        render();
+    }
+    if(framesToSkip > 0){
+        framesToSkip--;
+    }
 
     lastTime = now;
+
     requestAnimFrame(main);
 };
 
@@ -81,7 +89,7 @@ var playerSpeed = 70;
 var normalSpeed = 6;    // frames per second of sprite
 var shotSpeed = 140;
 // var enemySpeed = 50;
-var invulnerableTime = 200;
+var invulnerableTime = 800;
 
 // Cooldowns
 var supershotCd = 1.5 * 1000;
@@ -95,19 +103,51 @@ var gravityAccelerationY = 800;
 var gravityAccelerationX = 20;
 var groundHeight = 5;
 
-// Damage mechanics
+// Damage mechanics (using arrow function to preserve "this" context)
 function dmg(sprite){
-        switch(sprite.state){
-            case ("sidekick"):
-                this.health -= 15;
-                this.capacity += 30;
-                break;
-            default:
-                break;
+    var pushback = (pts) => {
+        this.health -= pts;
+        this.capacity += (pts * 2);
+
+        if(this.direction === "RIGHT"){
+            this.velocityX = -this.capacity;
+        }else{
+            this.velocityX = this.capacity;
         }
-        this.invulnerable = true;
-        this.sprite.state = "hurt";
+
+        framesToSkip = 10;
     }
+
+    switch(sprite.state){
+        case ("uppercut"):
+            pushback(25);
+            break;
+        case ("kick"):
+            pushback(10);
+            break;
+        case ("downkick"):
+            pushback(20);
+            break;
+        case ("punch"):
+            pushback(5);
+            break;
+        case ("airkick"):
+            pushback(15);
+            break;
+        case ("sidekick"):
+            pushback(15);
+            break;
+        case ("supershot"):
+            // have multiple cases here for difference levels of shot
+            pushback(35);
+            break;
+        default:
+            break;
+    }
+
+    this.invulnerable = Date.now();
+    this.sprite.state = "hurt";
+}
 
 // Game state
 var player1 = {
@@ -134,7 +174,7 @@ var player1 = {
         ULTI: "E"
     },
     damaged: dmg,
-    invulnerable: false
+    invulnerable: Date.now()
 };
 
 var player2 = {
@@ -161,7 +201,7 @@ var player2 = {
         ULTI: "3"
     },
     damaged: dmg,
-    invulnerable: false
+    invulnerable: Date.now()
 };
 
 var players = [player1, player2];
@@ -182,6 +222,12 @@ var twoCP = document.getElementById('two-cp');
 // Update game objects
 function update(dt) {
     gameTime += dt;
+
+    // disable hurt state if no longer invulnerable
+    players.forEach(player => {
+        if(player.sprite.state === "hurt" && player.invulnerable < Date.now() - invulnerableTime)
+            player.sprite.state = "idle";    
+    })
 
     handleInput(dt);
     processPhysics(dt);
@@ -249,6 +295,7 @@ function handleInput(dt) {
                 
                 else if(input.isDown(player.keys.BASIC)) {
                     player.sprite.state = "punch";
+                    //console.log(player.sprite.state)
                 }
 
                 else if(input.isDown(player.keys.SPECIAL)) {
@@ -488,6 +535,7 @@ function processPhysics(dt){
 }
 
 function updateEntities(dt) {
+
     players.forEach(player => {
         // Update the player sprite animation
         player.sprite.update(dt);
@@ -512,7 +560,6 @@ function updateEntities(dt) {
             }else{
                 shot.sprite.flipped = false;
             }
-
             player.shots[i].sprite.update(dt);
 
             // Remove the shot if it goes offscreen
@@ -546,6 +593,7 @@ function updateEntities(dt) {
         //     }
         // }
     })
+
 }
 
 
@@ -573,9 +621,11 @@ function checkCollisions(dt) {
         playerSize.push(player.sprite.boxsize);
     })
 
-    if(boxCollides(playerPos[0], playerSize[0], playerPos[1], playerSize[1])) {
+    // both players must be touching AND neither can be invulnerable if damage is to occur
+    if(boxCollides(playerPos[0], playerSize[0], playerPos[1], playerSize[1]) && (player1.invulnerable < Date.now() - invulnerableTime && player2.invulnerable < Date.now() - invulnerableTime)) {
         if(player1.sprite.priority > player2.sprite.priority){
             if(player1.sprite.priority > 0){
+            //console.log(player1.sprite.state)
                 player2.damaged(player1.sprite);
             }
         }else if(player1.sprite.priority < player2.sprite.priority){
@@ -584,8 +634,8 @@ function checkCollisions(dt) {
             }
         }else{
             if(player1.sprite.priority > 0){
-                player1.sprite.state = "hurt";
-                player1.sprite.state = "hurt";
+                player2.damaged(player1.sprite);
+                player1.damaged(player2.sprite);
             }
         } 
     }
@@ -638,6 +688,7 @@ function checkCollisions(dt) {
 }
 
 function checkPlayerBounds(dt) {
+    // BUILD A CORNER CASE... LITERALLY
     players.forEach(player => {
         // Check side bounds (enforce at hitbox)
         if(player.pos[0]  < - player.sprite.boxpos[0]) {
@@ -668,11 +719,8 @@ function checkPlayerBounds(dt) {
 
             player.sprite.speed = normalSpeed;
 
-            // if(player.sprite.state === "jump" || player.sprite.state === "jump2" || player.sprite.state === "uppercut"){
-            //     player.lastLand = Date.now();
-            // }
 
-            if(player.sprite.state !== "supershot" && player.sprite.state !== "kick"){   // these are the actions that cannot be interrupted once begun
+            if(player.sprite.state !== "supershot" && player.sprite.state !== "hurt" && player.sprite.state !== "kick"  && player.sprite.state !== "punch"){   // these are the actions that cannot be interrupted once begun
                 player.sprite.state = "idle";
             }
 
@@ -690,7 +738,6 @@ function render() {
 
     // flip direction if opponent on other side
     if(player1.pos[0] < player2.pos[0]){
-        //console.log("directino change")
         player1.direction = 'RIGHT';
         player2.direction = 'LEFT';
     }else{
