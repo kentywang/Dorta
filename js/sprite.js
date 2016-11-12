@@ -203,6 +203,12 @@ PlayerSprite.prototype.update = function(dt) {
             this.speed *= 0.25;
             this.priority = -3;
             break;
+        case "dead":
+            this.url = "img/cat.png";
+            this.pos = [0, 64*4];
+            this.frames = [4];
+            this.priority = -4;
+            break;
         default:
             this.url = "img/cat.png";
             this.state = "idle";

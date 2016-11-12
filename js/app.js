@@ -23,6 +23,8 @@ document.body.appendChild(canvas);
 // The main game loop
 var lastTime;
 var framesToSkip = 0;
+var disableControls = false;
+var endFrameSkipDuration = 1000;
 function main() {
     var now = Date.now();
     var dt = (now - lastTime) / 1000.0;
@@ -90,9 +92,9 @@ var normalSpeed = 6;    // frames per second of sprite
 var shotSpeed = 140;
 // var enemySpeed = 50;
 var invulnerableTime = 800;
-var regenAmt = 2.5;
-var maxHealth = 200;
-var startCapacity = 300;
+var regenAmt = .5;
+var maxHealth = 100;
+var startCapacity = 350;
 
 // Cooldowns
 var supershotCd = 1.5 * 1000;
@@ -304,6 +306,8 @@ var players = [player1, player2];
 var enemies = [];
 var explosions = [];
 
+var gameState = "play";
+var gameStateSet = 0;
 var gameTime = 0;
 var isGameOver;
 var terrainPattern;
@@ -320,18 +324,32 @@ function update(dt) {
     gameTime += dt;
 
     players.forEach(player => {
+        if(Date.now() - gameStateSet < 1000){
+            framesToSkip = 10
+        }
+
+        if(player.health <= 0 && gameState !== "over"){
+            gameState = "over";
+            gameOver(player);
+        }
         //console.log(player.health <= (maxHealth - regenAmt))
-        if(Date.now() - player.lastRegen > 1000 && player.health <= (maxHealth - regenAmt)){
+        if(Date.now() - player.lastRegen > 1000 && player.health <= (maxHealth - regenAmt) && player.sprite.state !== "dead"){
             player.health += regenAmt;
             player.lastRegen = Date.now();
         }
+
+        if(player.health <= 0 && player.sprite.state == "dead"){
+            player.health = 0;
+            player.invulnerable = Date.now();
+        }
         // disable hurt state if no longer invulnerable
-        if(player.sprite.state === "hurt" && player.invulnerable < Date.now() - invulnerableTime)
+        else if(player.sprite.state === "hurt" && player.invulnerable < Date.now() - invulnerableTime){
             player.sprite.state = "idle";    
+        }
     })
 
 
-    handleInput(dt);
+    if(!disableControls){ handleInput(dt);}
     processPhysics(dt);
     updateEntities(dt);
     checkCollisions(dt);
@@ -764,7 +782,7 @@ function checkCollisions(dt) {
             }
             // console.log(player.who, pos) 
             if(boxCollides(pos, size, playerPos, playerSize) && (player.invulnerable < Date.now() - invulnerableTime)){
-                if(player.sprite.priority < shots[i].sprite.priority || player.sprite.state === "crouch"){
+                if(player.sprite.priority < shots[i].sprite.priority || player.sprite.state === "crouch" || player.sprite.state === "supershot"){
                     player.damaged(shots[i]);
 
                 }else if(player.sprite.priority > shots[i].sprite.priority){
@@ -846,7 +864,7 @@ function checkPlayerBounds(dt) {
             player.sprite.speed = normalSpeed;
 
 
-            if(player.sprite.state !== "supershot" && player.sprite.state !== "hurt" && player.sprite.state !== "kick"  && player.sprite.state !== "punch" && player.sprite.state !== "crouch"){   // these are the actions that cannot be interrupted once begun
+            if(player.sprite.state !== "supershot" && player.sprite.state !== "hurt" && player.sprite.state !== "kick"  && player.sprite.state !== "punch" && player.sprite.state !== "crouch" && player.sprite.state !== "dead"){   // these are the actions that cannot be interrupted once begun
                 player.sprite.state = "idle";
             }
 
@@ -879,10 +897,10 @@ function render() {
     })
 
     // Render the player if the game isn't over
-    if(!isGameOver) {
+    //if(!isGameOver) {
         renderEntity(player1);
         renderEntity(player2);
-    }
+    //}
 
     renderEntities(player1.shots);
     renderEntities(player2.shots);
@@ -911,22 +929,28 @@ function renderEntity(entity, flipped) {
 }
 
 // Game over
-function gameOver() {
-    document.getElementById('game-over').style.display = 'block';
-    document.getElementById('game-over-overlay').style.display = 'block';
-    isGameOver = true;
+function gameOver(player) {
+    gameStateSet = Date.now();
+    player.sprite.state = "dead"; 
+    disableControls = true;
+    setTimeout(()=>{
+        document.getElementById('game-over').style.display = 'block';
+        document.getElementById('game-over-overlay').style.display = 'block';
+        },1500);
 }
 
 // Reset game to original state
 function reset() {
     document.getElementById('game-over').style.display = 'none';
     document.getElementById('game-over-overlay').style.display = 'none';
-    isGameOver = false;
-    gameTime = 0;
-    score = 0;
+    disableControls = false;
+    gameState = "play;"
 
-    enemies = [];
-    bullets = [];
+    players.forEach(player => {
+        player.health = maxHealth;     
+        player.capacity = startCapacity;
+        player.sprite.state = "idle"  
+    })
 
     player1.pos = [50, canvas.height - groundHeight];
     player2.pos = [canvas.width - 100, canvas.height - groundHeight];
