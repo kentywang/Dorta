@@ -36,6 +36,7 @@ function main() {
 
     if(framesToSkip === 0){
         update(dt);
+        backgroundRender();
         render();
     }
     if(framesToSkip > 0){
@@ -86,7 +87,13 @@ function init() {
 resources.load([
     'img/cat.png',
     'img/cat2.png',
+    'img/catGreen.png',
+    'img/cat2Green.png',
+    'img/catPurple.png',
+    'img/cat2Purple.png',
     'img/shot.png',
+    'img/shot2.png',
+    'img/shot3.png',
     'img/parallax-forest-lights.png',
     'img/parallax-forest-back-trees.png',
     'img/parallax-forest-middle-trees.png',
@@ -136,8 +143,8 @@ function numberBetween(n, m){
 // Shake, shake, shake
 function preShake() {
   ctx.save();
-  var dx = Math.random()*2;
-  var dy = Math.random()*2;
+  var dx = Math.random()*4;
+  var dy = Math.random()*4;
   ctx.translate(dx, dy);  
 }
 function postShake() {
@@ -278,7 +285,7 @@ var player1 = {
     pos: [0, 0],
     velocityY: 0,
     velocityX: 0,
-    sprite: new PlayerSprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12, 28], normalSpeed, [0, 1, 2, 3]),
+    sprite: new PlayerSprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12, 28], normalSpeed, [0, 1, 2, 3],"Green"),
     lastJump: Date.now(),
     lastLand: Date.now(),
     lastKick: Date.now(),
@@ -308,7 +315,7 @@ var player2 = {
     pos: [0, 0],
     velocityY: 0,
     velocityX: 0,
-    sprite: new PlayerSprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12, 28], normalSpeed, [0, 1, 2, 3]),
+    sprite: new PlayerSprite('img/cat.png', [0, 0], [64, 64], [25, 26], [12, 28], normalSpeed, [0, 1, 2, 3], "Purple"),
     lastJump: Date.now(),
     lastLand: Date.now(),
     lastKick: Date.now(),
@@ -352,7 +359,7 @@ var twoCP = document.getElementById('two-cp');
 function update(dt) {
     gameTime += dt;
 
-    midPt = (player1.pos[0] + player2.pos[0])/2;
+    midPt = (player1.pos[0]+player1.sprite.boxpos[0] + player2.pos[0] + player2.sprite.boxpos[0] + player2.sprite.boxsize[0])/2 - 136;
 
     players.forEach(player => {
         if(Date.now() - gameStateSet < 1000){
@@ -824,19 +831,29 @@ function checkCollisions(dt) {
             }
             // console.log(player.who, pos) 
             if(boxCollides(pos, size, playerPos, playerSize) && (player.invulnerable < Date.now() - invulnerableTime)){
-                if(player.sprite.priority < shots[i].sprite.priority || player.sprite.state === "crouch" || player.sprite.state === "supershot"){
+                if(!shots[i]){break;}   // strange bug
+                if(shots[i] && (player.sprite.priority < shots[i].sprite.priority || player.sprite.state === "crouch" || player.sprite.state === "supershot")){
                     player.damaged(shots[i]);
 
                 }else if(player.sprite.priority > shots[i].sprite.priority){
                     // REFLECT TIMEEEE!
+
+                    var whichShot = "img/shot.png";
+                    if(shots[i].speed > 200){
+                        whichShot = "img/shot2.png"
+                    }
+                    if(shots[i].speed > 300){
+                        whichShot = "img/shot3.png"
+                    }
                     player.shots.push({ 
                         pos: [shots[i].pos[0], shots[i].pos[1]],    // fucking arrays...
                         direction: player.direction,
-                        sprite: new Sprite('img/shot.png', [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3], "horizontal", false, "moving"),
+                        sprite: new Sprite(whichShot, [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3], "horizontal", false, "moving"),
                         fireTime: Date.now() - shotChargeTime,
                         speed: shots[i].speed+35
                        });
                     shots.splice(i--, 1);
+                    framesToSkip = 3;
                     
                 }
             }
@@ -919,11 +936,65 @@ function checkPlayerBounds(dt) {
     })
 }
 
+function backgroundRender(){
+    // var bg1 = resources.get('img/parallax-forest-front-trees.png');
+    // var bg2 = resources.get('img/parallax-forest-middle-trees.png');
+    // var bg3 = resources.get('img/parallax-forest-lights.png');
+    // var bg4 = resources.get('img/parallax-forest-back-trees.png');
+
+    // var tempCanvas = document.createElement("canvas");
+    // var tCtx = tempCanvas.getContext("2d");
+    // tempCanvas.width = 272 * 3;
+    // tempCanvas.height = 160;
+    // tCtx.translate(midPt, 0);  
+    // // tCtx.drawImage(bg4, 0, 0, bg4.width, bg4.height);
+    // // tCtx.drawImage(bg3, 0, 0, bg3.width, bg3.height);
+    // // tCtx.drawImage(bg2, 0, 0, bg2.width, bg2.height);
+    // // tCtx.drawImage(bg1, 0, 0, bg1.width, bg1.height);
+    // tCtx.fillStyle = tCtx.createPattern(bg1, "repeat");;
+    // tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+    // terrainPattern = ctx.createPattern(tempCanvas, 'repeat'); 
+}
 
 // Draw everything
 function render() {
-    ctx.fillStyle = terrainPattern;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // parallax background rendering first
+    var bg1 = resources.get('img/parallax-forest-front-trees.png');
+    var bg2 = resources.get('img/parallax-forest-middle-trees.png');
+    var bg3 = resources.get('img/parallax-forest-lights.png');
+    var bg4 = resources.get('img/parallax-forest-back-trees.png');
+    
+    ctx.save();
+    ctx.translate(-midPt/8, 0);
+    for (var i = -1; i < 2; i++) {
+        ctx.drawImage(bg4, i * 272, 0);
+    }
+    ctx.restore();
+    
+    ctx.save();
+    ctx.drawImage(bg3, 0, 0);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(-midPt/6, 0);
+    for (var i = -1; i < 2; i++) {
+        ctx.drawImage(bg2, i * 272, 0);
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(-midPt/2, 0);
+    for (var i = -1; i < 2; i++) {
+        ctx.drawImage(bg1, i * 272, 0);
+    }
+    ctx.restore();
+
+
+
+    //ctx.fillStyle = terrainPattern;
+    //ctx.fillRect(0, 0, canvas.width, canvas.height);
     //console.log(player1.shots[0] && player1.shots[0].sprite.status);
 
     // flip direction if opponent on other side
@@ -973,19 +1044,24 @@ function renderHealth(entity, flipped) {
     if(!flipped){
         ctx.translate(30, 15);
         ctx.drawImage(resources.get("img/empty.png"),0,0,72,6,0,0,72,6);
-        if(entity.invulnerable > Date.now() - invulnerableTime){
-            ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
-        }else{
+        if(entity.sprite.state === "dead" || entity.invulnerable < Date.now() - invulnerableTime){
             ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
             entity.lastStableHp -= .8;
+        }else{
+            ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
         }
         ctx.drawImage(resources.get("img/health.png"),0,0,amt,6,0,0,amt,6);
     }else{
-        // ctx.translate(240, 15);
-        // ctx.scale(-1, 1);
-        // ctx.drawImage(resources.get("img/empty.png"),0,0,72,6,0,0,-72,6);
-        // ctx.drawImage(resources.get("img/damage.png"),0,0,72,6,0,0,-72,6);
-        // ctx.drawImage(resources.get("img/health.png"),0,0,72,6,0,0,-72,6);
+        ctx.translate(240, 15);
+        ctx.scale(-1, 1);
+        ctx.drawImage(resources.get("img/empty.png"),0,0,72,6,0,0,72,6);
+        if(entity.sprite.state === "dead" || entity.invulnerable < Date.now() - invulnerableTime){
+            ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
+            entity.lastStableHp -= .8;
+        }else{
+            ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
+        }
+        ctx.drawImage(resources.get("img/health.png"),0,0,amt,6,0,0,amt,6);
     }
 
     //damageAmt -= 0.1
