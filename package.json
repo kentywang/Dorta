@@ -1,0 +1,23 @@
+{
+  "name": "dorta",
+  "version": "1.0.0",
+  "description": "A fighting game that takes place in a forest between two cats. Inspired by SSBM, Zelda, DBZ, and Dota (sorta).",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quirkycorgi/Dorta.git"
+  },
+  "author": "Kenty Wang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/quirkycorgi/Dorta/issues"
+  },
+  "homepage": "https://github.com/quirkycorgi/Dorta#readme",
+  "dependencies": {
+    "express": "^4.14.0",
+    "path": "^0.12.7"
+  }
+}
