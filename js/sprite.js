@@ -1,7 +1,6 @@
 function Sprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once, state) {
     this.state;
     this.flipped = false;
-
     this.priority = 0;  // this prop determines which attack has precedence
     this.pos = pos;
     this.size = size;
@@ -13,29 +12,23 @@ function Sprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once, state
     this.url = url;
     this.dir = dir || 'horizontal';
     this.once = once;
-    this.resetFrame = false;    // do I even need this?
 };
 
 Sprite.prototype.update = function(dt) {
-    //console.log("whaaaa", this.state)
      switch(this.state){
         case ("moving"):
-            //this.url = "img/shot.png";
             this.pos = [64 * 4, 0];
             this.priority = 8;
             this.frames = [0, 1, 2, 3];
             break;
         case ("hit"):
-        //console.log("mmmmmmmmm")
-            //this.url = "img/shot.png";
             this.pos = [64 * 4, 64 * 2];
             this.priority = 0;
-            this.speed = 3;
+            this.speed = 10;
             this.frames = [0, 1, 2];
             this.once = true;
             break;
         default:
-            //this.url = "img/shot.png";
             this.state = "moving";
             this.pos = [64 * 4, 0];
             this.priority = 8;
@@ -55,7 +48,6 @@ Sprite.prototype.render = function(ctx) {
 
         if(this.once && idx >= max) {
             this.done = true;
-            //console.log;
             return;
         }
         if(idx >= max) {    // these are the actions that cannot be interrupted once begun and reset to idle after completion
@@ -72,7 +64,6 @@ Sprite.prototype.render = function(ctx) {
 
     var x = this.pos[0];
     var y = this.pos[1];
-    //console.log("y is: ", this.pos[1] )
     if(this.dir == 'vertical') {
         y += frame * this.size[1];
     }
@@ -140,8 +131,7 @@ PlayerSprite.prototype.update = function(dt) {
         case "punch":
             this.url = `img/cat${this.color}.png`;
             this.pos = [0, 64*11]; // punch is now actually a kick
-            this.speed *= 1.2;
-            this.frames = [2, 3, 2, 3];
+            this.frames = [2, 3, 2];
             // this.pos = [0, 64*9];
             // this.speed *= 2;
             // this.frames = [4, 5, 7, 8];
@@ -150,7 +140,7 @@ PlayerSprite.prototype.update = function(dt) {
         case "uppercut":
             this.url = `img/cat${this.color}.png`;
             this.pos = [0, 64*8];
-            this.frames = [6, 7];
+            this.frames = [6, 7, 6, 7, 6];
             this.priority = 6;
             break;
         case "airkick":
@@ -240,7 +230,7 @@ PlayerSprite.prototype.render = function(ctx) {
             return;
         }
         if(idx >= max) {    // these are the actions that cannot be interrupted once begun and reset to idle after completion
-            if(this.state === "supershot" || this.state === "tp"|| this.state === "kick" || this.state === "punch" || this.state === "crouch"){
+            if(this.state === "supershot" || this.state === "tp"|| this.state === "kick" || this.state === "crouch"|| this.state === "punch"){
                 this.state = "idle";
             }
             this._index = 0;
