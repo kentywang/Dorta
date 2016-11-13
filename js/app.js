@@ -186,7 +186,7 @@ resources.onReady(init);
 // Speed in pixels per second
 var playerSpeed = 70;
 var normalSpeed = 6;    // frames per second of sprite
-var shotSpeed = 140;
+var shotSpeed = 160;
 var invulnerableTime = 800;
 var regenAmt = .5;
 var maxHealth = 115;
@@ -195,7 +195,6 @@ var startCapacity = 380;
 // Cooldowns
 var supershotCd = 2 * 1000;
 var jumpCd = .25 * 1000;
-var kickCd = 1 * 1000;
 var punchCd = .8 * 1000;
 var tpCd = 2 * 1000;
 var uppercutCd = 1.4 * 1000;
@@ -331,9 +330,6 @@ function dmg(player){
             break;
         case ("uppercut"):
             pushback(numberBetween(8,10), "sideUp");
-            break;
-        case ("kick"):
-            pushback(numberBetween(11,13));
             break;
         case ("downkick"):
             pushback(numberBetween(12,18), "down");
@@ -924,10 +920,10 @@ function checkCollisions(dt) {
                     // REFLECT TIME!
 
                     var whichShot = "img/shot.png";
-                    if(shots[i].speed > 200){
+                    if(shots[i].speed > 220){
                         whichShot = "img/shot2.png"
                     }
-                    if(shots[i].speed > 300){
+                    if(shots[i].speed > 320){
                         whichShot = "img/shot3.png"
                     }
                     player.shots.push({ 
@@ -1012,7 +1008,7 @@ function checkPlayerBounds(dt) {
             player.sprite.speed = normalSpeed;
 
 
-            if(player.sprite.state !== "supershot" && player.sprite.state !== "hurt" && player.sprite.state !== "kick" && player.sprite.state !== "crouch" && player.sprite.state !== "dead" && player.sprite.state !== "tp" && player.sprite.state !== "punch"){   // these are the actions that cannot be interrupted once begun
+            if(player.sprite.state !== "supershot" && player.sprite.state !== "hurt" && player.sprite.state !== "crouch" && player.sprite.state !== "dead" && player.sprite.state !== "tp" && player.sprite.state !== "punch"){   // these are the actions that cannot be interrupted once begun
                 player.sprite.state = "idle";
             }
 
