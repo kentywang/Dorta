@@ -73,3 +73,8 @@ canvas {
 #game-over button {
     font-size: 1.5em;
 }
+
+@font-face{
+    font-family: "venus";
+    src: url('./venus.ttf');
+}

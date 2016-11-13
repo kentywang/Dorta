@@ -1,7 +1,7 @@
 {
   "name": "dorta",
   "version": "1.0.0",
-  "description": "A fighting game that takes place in a forest between two cats. Inspired by SSBM, Zelda, DBZ, and Dota (sorta).",
+  "description": "A fighting game that takes place in a forest between two cats. Inspired by SSBM, Street Fighter, Zelda, DBZ, and Dota. Sorta.",
   "main": "index.js",
   "scripts": {
     "start": "node app.js"

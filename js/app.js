@@ -121,16 +121,14 @@ function animatedScreen(now) {
 
 function init() {
 
-    var bufferLoader = new BufferLoader(
-        context,
-        [
-            'audio/menu.wav',
-            'audio/cave.mp3'
-        ],
-        finishedLoading
-        );
+    // var bufferLoader = new BufferLoader(
+    //     context,
+    //     [
+    //     ],
+    //     finishedLoading
+    //     );
 
-    bufferLoader.load();
+    // bufferLoader.load();
 
 
     ctx.imageSmoothingEnabled = false;
@@ -147,19 +145,19 @@ function init() {
 //   source.start(0);                           
 // }
 
-function finishedLoading(bufferList) {
-  // Create two sources and play them both together.
-  var source1 = context.createBufferSource();
-  //var source2 = context.createBufferSource();
-  source1.buffer = bufferList[0];
-  //source2.buffer = bufferList[1];
+// function finishedLoading(bufferList) {
+//   // Create two sources and play them both together.
+//   var source1 = context.createBufferSource();
+//   //var source2 = context.createBufferSource();
+//   source1.buffer = bufferList[1];
+//   //source2.buffer = bufferList[1];
 
-  source1.connect(context.destination);
-  //source2.connect(context.destination);
-  source1.loop = true;
-  source1.start(0);
- // source2.start(0);
-}
+//   source1.connect(context.destination);
+//   //source2.connect(context.destination);
+//   source1.loop = true;
+//   source1.start(0);
+//  // source2.start(0);
+// }
 
 
 
@@ -197,8 +195,8 @@ var shotSpeed = 140;
 // var enemySpeed = 50;
 var invulnerableTime = 800;
 var regenAmt = .5;
-var maxHealth = 100;
-var startCapacity = 500;
+var maxHealth = 115;
+var startCapacity = 380;
 
 // Cooldowns
 var supershotCd = 1.5 * 1000;
@@ -214,7 +212,7 @@ var gravityAccelerationY = 800;
 var gravityAccelerationX = 20;
 var groundHeight = 5;
 var bounceCapacity= 100;
-var bounceCapacity2= 450;
+var bounceCapacity2= 300;
 var groundBounceVelocity = 450;
 
 var shakeCd = 1 * 1000;
@@ -228,8 +226,9 @@ function numberBetween(n, m){
 // Shake, shake, shake
 function preShake() {
   ctx.save();
-  var dx = Math.random()*4;
-  var dy = Math.random()*4;
+  var dx = Math.random()*3;
+  var dy = Math.random()*3;
+  ctx.rotate(((Math.random() - 0.5)*2)* Math.PI/180);
   ctx.translate(dx, dy);  
 }
 function postShake() {
@@ -344,10 +343,10 @@ function dmg(player){
             pushback(numberBetween(12,18), "down");
             break;
         case ("punch"):
-            pushback(11);
+            pushback(numberBetween(11,13));
             break;
         case ("airkick"):
-            pushback(12);
+            pushback(numberBetween(12,14));
             break;
         case ("sidekick"):
             pushback(numberBetween(11,17), "sideDown");
@@ -389,7 +388,8 @@ var player1 = {
     damaged: dmg,
     invulnerable: Date.now(),
     lastRegen: Date.now(),
-    lastStableHp: maxHealth
+    lastStableHp: maxHealth,
+    lastStableCp: 0
 };
 
 var player2 = {
@@ -419,7 +419,8 @@ var player2 = {
     damaged: dmg,
     invulnerable: Date.now(),
     lastRegen: Date.now(),
-    lastStableHp: maxHealth
+    lastStableHp: maxHealth,
+    lastStableCp: 0
 };
 
 var players = [player1, player2];
@@ -1060,6 +1061,7 @@ function render() {
     }
     ctx.restore();
 
+
     if(drawNow){
         if(whoLostLast === 2){
             ctx.drawImage(resources.get("img/p1w.png"), 50, 60)
@@ -1100,14 +1102,39 @@ function render() {
     // renderEntities(explosions);
     renderHealth(player1);
     renderHealth(player2, true);
+
+    var stableCp1 = Math.floor(player1.lastStableCp - 1);
+    if(player1.lastStableCp >= player1.capacity - startCapacity){
+        player1.lastStableCp = player1.capacity - startCapacity;
+    }
+    player1.lastStableCp += 1.5;
+    var stableCp2 = Math.floor(player2.lastStableCp - 1);
+    if(player2.lastStableCp >= player2.capacity - startCapacity){
+        player2.lastStableCp = player2.capacity - startCapacity;
+    }
+    player2.lastStableCp += 1.5;
+    
+    ctx.save();
+    ctx.fillStyle = "white";
+    ctx.font = "10px venus";
+    ctx.rotate(-90*Math.PI/180);
+    ctx.fillText(`${stableCp1}%`, -70, 15);
+    ctx.restore();
+    ctx.save();
+    ctx.fillStyle = "white";
+    ctx.font = "10px venus";
+    ctx.rotate(90*Math.PI/180);
+    ctx.fillText(`${stableCp2}%`, 40, -257);
+    ctx.restore();
+    //var sth = ${Math.floor(player1.capacity - startCapacity) * 0.6}%;
 };
 
 function renderHealth(entity, flipped) {
     var barLen = 72;
 
-    var amt = entity.health/100 * barLen;
+    var amt = entity.health/maxHealth * barLen;
 
-    var stableAmt = entity.lastStableHp/100 * barLen;
+    var stableAmt = entity.lastStableHp/maxHealth * barLen;
     if(entity.lastStableHp <= entity.health){
         entity.lastStableHp = entity.health;
     }
