@@ -229,6 +229,22 @@ function preShake() {
 function postShake() {
   ctx.restore();
 }
+function midPlayer(player1, player2, flair){  
+
+    // add variation to height if flair
+    var vary = 0; 
+    if(flair === "up"){
+        vary = -Math.random();
+    } 
+    if(flair === "down"){
+        vary = Math.random();
+    }
+
+    // once you find your center
+   return [(((player1.pos[0] + player1.sprite.boxpos[0] + player1.pos[0] + player1.sprite.boxpos[0] + player1.sprite.boxsize[0])/2) + ((player2.pos[0] + player2.sprite.boxpos[0] + player2.pos[0] + player2.sprite.boxpos[0] + player2.sprite.boxsize[0])/2))/2 - 16 + vary,
+    (((player1.pos[1] + player1.sprite.boxpos[1] + player1.pos[1] + player1.sprite.boxpos[1] + player1.sprite.boxsize[1])/2) + ((player2.pos[1] + player2.sprite.boxpos[1] + player2.pos[1] + player2.sprite.boxpos[1] + player2.sprite.boxsize[1])/2))/2 -16 + vary]; // -16 to account for sprite size of 32X32
+    // you are sure to win ~
+};
 
 // Damage mechanics (using arrow function to preserve "this" context)
 function dmg(player){
@@ -872,17 +888,6 @@ function checkCollisions(dt) {
         playerSize.push(player.sprite.boxsize);
     })
 
-
-
-    function midPlayer(player1, player2){  
-        // once you find your center 
-       return [(((player1.pos[0] + player1.sprite.boxpos[0] + player1.pos[0] + player1.sprite.boxpos[0] + player1.sprite.boxsize[0])/2) + ((player2.pos[0] + player2.sprite.boxpos[0] + player2.pos[0] + player2.sprite.boxpos[0] + player2.sprite.boxsize[0])/2))/2 - 16,
-        (((player1.pos[1] + player1.sprite.boxpos[1] + player1.pos[1] + player1.sprite.boxpos[1] + player1.sprite.boxsize[1])/2) + ((player2.pos[1] + player2.sprite.boxpos[1] + player2.pos[1] + player2.sprite.boxpos[1] + player2.sprite.boxsize[1])/2))/2 -16]; // -16 to account for sprite size of 32X32
-        // you are sure to win ~
-    };
-
-
-
     // both players must be touching AND neither can be invulnerable if damage is to occur
     if(boxCollides(playerPos[0], playerSize[0], playerPos[1], playerSize[1]) && (player1.invulnerable < Date.now() - invulnerableTime && player2.invulnerable < Date.now() - invulnerableTime)) {
         if(player1.sprite.priority > player2.sprite.priority){
@@ -896,10 +901,25 @@ function checkCollisions(dt) {
             }
         }else if(player1.sprite.priority < player2.sprite.priority){
             if(player2.sprite.priority > 0){
+                explosions.push({ 
+                        pos: midPlayer(player1, player2),
+                        direction: player2.direction,
+                        sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
+                       })
                 player1.damaged(player2);
             }
         }else{
             if(player1.sprite.priority > 0){
+                explosions.push({ 
+                        pos: midPlayer(player1, player2, "up"),
+                        direction: player1.direction,
+                        sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
+                       })
+                explosions.push({ 
+                        pos: midPlayer(player1, player2, "down"),
+                        direction: player2.direction,
+                        sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
+                       })
                 player2.damaged(player1);
                 player1.damaged(player2);
             }
@@ -967,6 +987,7 @@ function checkCollisions(dt) {
                         speed: shots[i].speed+35
                        });
                     shots[i].sprite.state = "hit";
+
                     framesToSkip = 10;
                     
                 }
