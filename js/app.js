@@ -119,6 +119,21 @@ function animatedScreen(now) {
 
 function init() {
 
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    var context = new AudioContext();
+
+    var bufferLoader = new BufferLoader(
+        context,
+        [
+          'audio/cave.mp3'
+        ],
+        finishedLoading
+        );
+
+    bufferLoader.load();
+
+    // playSound('audio/cave.mp3');
+
     ctx.imageSmoothingEnabled = false;
 
     reset(true);
@@ -126,7 +141,76 @@ function init() {
     main();
 }
 
+function playSound(buffer) {
+  var source = context.createBufferSource();
+  source.buffer = buffer;
+  source.connect(context.destination);
+  source.start(0);                           
+}
+
+function finishedLoading(bufferList) {
+  // Create two sources and play them both together.
+  var source1 = context.createBufferSource();
+  //var source2 = context.createBufferSource();
+  source1.buffer = bufferList[0];
+  //source2.buffer = bufferList[1];
+
+  source1.connect(context.destination);
+  //source2.connect(context.destination);
+  source1.start(0);
+ // source2.start(0);
+}
+
+function BufferLoader(context, urlList, callback) {
+  this.context = context;
+  this.urlList = urlList || [];
+  this.onload = callback;
+  this.bufferList = new Array();
+  this.loadCount = 0;
+}
+
+BufferLoader.prototype.loadBuffer = function(url, index) {
+  // Load buffer asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+
+  var loader = this;
+
+  request.onload = function() {
+    // Asynchronously decode the audio file data in request.response
+    loader.context.decodeAudioData(
+      request.response,
+      function(buffer) {
+        if (!buffer) {
+          alert('error decoding file data: ' + url);
+          return;
+        }
+        loader.bufferList[index] = buffer;
+        if (++loader.loadCount == loader.urlList.length)
+          loader.onload(loader.bufferList);
+      },
+      function(error) {
+        console.error('decodeAudioData error', error);
+      }
+    );
+  }
+
+  request.onerror = function() {
+    alert('BufferLoader: XHR error');
+  }
+
+  request.send();
+}
+
+BufferLoader.prototype.load = function() {
+  for (var i = 0; i < this.urlList.length; ++i)
+  this.loadBuffer(this.urlList[i], i);
+}
+
+
 resources.load([
+    //'audio/cave.mp3',
     'img/playagain.png',
     'img/p1w.png',
     'img/p2w.png',
@@ -281,6 +365,8 @@ function dmg(player){
         }
         
         framesToSkip = 10;
+        this.invulnerable = Date.now();
+        this.sprite.state = "hurt";
     }
 
     switch(player.sprite.state){
@@ -293,7 +379,7 @@ function dmg(player){
                 player.velocityX = -playerJump /4;
             }
             framesToSkip = 1;
-            return; // return instead of just breaking because don't want to give inv frames or hurt status
+            break;
         case ("uppercut"):
             pushback(numberBetween(8,10), "sideUp");
             break;
@@ -313,15 +399,12 @@ function dmg(player){
             pushback(numberBetween(11,17), "sideDown");
             break;
         case ("moving"):
-            // have multiple cases here for difference levels of shot
             pushback(player.speed/8);
             player.sprite.state = "hit";
             break;
         default:
             break;
     }
-    this.invulnerable = Date.now();
-    this.sprite.state = "hurt";
 }
 
 // Game state
@@ -396,10 +479,10 @@ var isGameOver;
 var terrainPattern;
 
 // The score
-var oneHP = document.getElementById('one-hp');
-var oneCP = document.getElementById('one-cp');
-var twoHP = document.getElementById('two-hp');
-var twoCP = document.getElementById('two-cp');
+// var oneHP = document.getElementById('one-hp');
+// var oneCP = document.getElementById('one-cp');
+// var twoHP = document.getElementById('two-hp');
+// var twoCP = document.getElementById('two-cp');
 
 
 // Update game objects
@@ -453,10 +536,10 @@ function update(dt) {
     updateEntities(dt);
     checkCollisions(dt);
 
-    oneHP.innerHTML = player1.health;
-    oneCP.innerHTML = player1.capacity;
-    twoHP.innerHTML = player2.health;
-    twoCP.innerHTML = player2.capacity;
+    // oneHP.innerHTML = player1.health;
+    // oneCP.innerHTML = player1.capacity;
+    // twoHP.innerHTML = player2.health;
+    // twoCP.innerHTML = player2.capacity;
 };
 
 
