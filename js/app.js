@@ -22,6 +22,8 @@ canvas.height = 160;
 document.body.appendChild(canvas);
 
 
+var socket = null;
+
 // The main game loop
 var lastTime;
 var framesToSkip = 0;
@@ -115,7 +117,33 @@ function animatedScreen(now) {
 };
 
 
+// socket stuff
+var gameId = _.last(window.location.href.split('/'));
+
+  function session() {
+    return { playerId: null, gameId, playerName: "anon" };
+  }
+
+// initialization
 function init() {
+
+    socket = io.connect('/');
+
+    socket.on('connect', function() {
+        console.log("got in")
+      socket.emit('joinGame', session());
+    });
+
+
+    socket.on('gameState', function(state) {
+      console.log(state);
+      player1.health = state.player1;
+      // if(me() && me().state == "dying") { 
+      //   app.achievements.resetKillStreak();
+      // }
+      // applyGravity();
+    });
+
 
     // var bufferLoader = new BufferLoader(
     //     context,
@@ -509,6 +537,8 @@ function handleInput(dt) {
                     player.sprite.state = "jump";
                     player.velocityY = -playerJump;
                     player.lastJump = Date.now();
+
+                    socket.emit('up', session());
                 }
 
                 else if(input.isDown(player.keys.BASIC) && input.isDown(player.keys.UP)) {

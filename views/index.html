@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="css/app.css">
   </head>
   <body>
+  <form method="post" action="/join">
+        <input type="input" name="room" placeholder="leave blank for the public room"/>
+        <button>k</button>
+      </form>
   <!--   <div id="game-over-overlay">
     </div>
 
@@ -32,6 +36,8 @@
         </div> -->
       </div>
     </div>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
     <script type="text/javascript" src="js/BufferLoader.js"></script>
     <script type="text/javascript" src="js/resources.js"></script>
     <script type="text/javascript" src="js/input.js"></script>
