@@ -28,6 +28,7 @@ var framesToSkip = 0;
 var disableControls = false;
 var endFrameSkipDuration = 1000;
 var midPt;
+var slowMidPt = 5;
 var whoLostLast = 0;
 var drawNow = false;
 function main() {
@@ -199,10 +200,11 @@ var maxHealth = 115;
 var startCapacity = 380;
 
 // Cooldowns
-var supershotCd = 1.5 * 1000;
+var supershotCd = 2 * 1000;
 var jumpCd = .25 * 1000;
 var kickCd = 1 * 1000;
 var punchCd = .6 * 1000;
+var tpCd = 2 * 1000;
 var shotChargeTime = .5 * 1000;
 
 
@@ -389,7 +391,8 @@ var player1 = {
     invulnerable: Date.now(),
     lastRegen: Date.now(),
     lastStableHp: maxHealth,
-    lastStableCp: 0
+    lastStableCp: 0,
+    lastTp: Date.now()
 };
 
 var player2 = {
@@ -420,7 +423,8 @@ var player2 = {
     invulnerable: Date.now(),
     lastRegen: Date.now(),
     lastStableHp: maxHealth,
-    lastStableCp: 0
+    lastStableCp: 0,
+    lastTp: Date.now()
 };
 
 var players = [player1, player2];
@@ -546,6 +550,35 @@ function handleInput(dt) {
                     player.sprite.state = "punch";
                     player.lastPunch = Date.now();
                     //console.log(player.sprite.state)
+                }
+
+                else if(input.isDown(player.keys.SPECIAL) && input.isDown(player.keys[player.direction])) {
+                    if(Date.now() - player.lastTp < tpCd){ break;}
+                    player.sprite.state = "tp";
+
+                    if(player.who === 1){
+                        if(player.direction === "RIGHT"){
+                            player.pos[0] = player2.pos[0] - 60;
+                            player.velocityX += 300;
+                        }
+                        else{
+                            player.pos[0] = player2.pos[0] + 60;
+                            player.velocityX -= 300;
+                        }                
+                    }
+                    else{
+                        if(player.direction === "RIGHT"){
+                            player.pos[0] = player1.pos[0] - 60;
+                            player.velocityX += 300;
+                        }
+                        else{
+                            player.pos[0] = player1.pos[0] + 60;
+                            player.velocityX -= 300;
+                        }                
+                    }
+
+                    framesToSkip = 10;
+                    player.lastTp = Date.now();
                 }
 
                 else if(input.isDown(player.keys.SPECIAL)) {
@@ -1015,7 +1048,7 @@ function checkPlayerBounds(dt) {
             player.sprite.speed = normalSpeed;
 
 
-            if(player.sprite.state !== "supershot" && player.sprite.state !== "hurt" && player.sprite.state !== "kick"  && player.sprite.state !== "punch" && player.sprite.state !== "crouch" && player.sprite.state !== "dead"){   // these are the actions that cannot be interrupted once begun
+            if(player.sprite.state !== "supershot" && player.sprite.state !== "hurt" && player.sprite.state !== "kick"  && player.sprite.state !== "punch" && player.sprite.state !== "crouch" && player.sprite.state !== "dead" && player.sprite.state !== "tp"){   // these are the actions that cannot be interrupted once begun
                 player.sprite.state = "idle";
             }
 
@@ -1035,9 +1068,11 @@ function render() {
     var bg2 = resources.get('img/parallax-forest-middle-trees.png');
     var bg3 = resources.get('img/parallax-forest-lights.png');
     var bg4 = resources.get('img/parallax-forest-back-trees.png');
-    
+
+    var bgMidPt = slowMidPt;
+
     ctx.save();
-    ctx.translate(-midPt/8 % 272, 0);
+    ctx.translate(-bgMidPt/8 % 272, 0);
     for (var i = -1; i < 2; i++) {
         ctx.drawImage(bg4, i * 272, 0);
     }
@@ -1048,18 +1083,24 @@ function render() {
     ctx.restore();
 
     ctx.save();
-    ctx.translate(-midPt/6 % 272, 0);
+    ctx.translate(-bgMidPt/6 % 272, 0);
     for (var i = -1; i < 2; i++) {
         ctx.drawImage(bg2, i * 272, 0);
     }
     ctx.restore();
 
     ctx.save();
-    ctx.translate(-midPt/2 % 272, 0);
+    ctx.translate(-bgMidPt/2 % 272, 0);
     for (var i = -1; i < 2; i++) {
         ctx.drawImage(bg1, i * 272, 0);
     }
     ctx.restore();
+
+    if(Math.floor(slowMidPt) < Math.floor(midPt)){
+        slowMidPt += 1; 
+    }else if(Math.floor(slowMidPt) > Math.floor(midPt)){
+        slowMidPt -= 1; 
+    }
 
 
     if(drawNow){

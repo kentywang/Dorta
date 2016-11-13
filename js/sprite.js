@@ -197,6 +197,12 @@ PlayerSprite.prototype.update = function(dt) {
             this.speed *= 1.5;
             this.priority = -2;
             break;
+        case "tp":
+            this.url = `img/cat${this.color}.png`;
+            this.pos = [0, 64*3];
+            this.frames = [1];
+            this.priority = -2;
+            break;
         case "hurt":
             this.url = `img/cat${this.color}.png`
             this.pos = [0, 64*4];
@@ -234,7 +240,7 @@ PlayerSprite.prototype.render = function(ctx) {
             return;
         }
         if(idx >= max) {    // these are the actions that cannot be interrupted once begun and reset to idle after completion
-            if(this.state === "supershot" || this.state === "kick" || this.state === "punch" || this.state === "crouch"){
+            if(this.state === "supershot" || this.state === "tp"|| this.state === "kick" || this.state === "punch" || this.state === "crouch"){
                 this.state = "idle";
             }
             this._index = 0;
