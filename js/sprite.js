@@ -88,6 +88,89 @@ Sprite.prototype.render = function(ctx) {
     }
 }
 
+function HitSprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once, state) {
+    this.state;
+    this.flipped = false;
+    this.priority = 0;  // this prop determines which attack has precedence
+    this.pos = pos;
+    this.size = size;
+    this.boxpos = boxpos;
+    this.boxsize = boxsize;
+    this.speed = 30;
+    this.frames = frames;
+    this._index = 0;
+    this.url = url;
+    this.dir = dir || 'horizontal';
+    this.once = once;
+};
+
+HitSprite.prototype.update = function(dt) {
+     switch(this.state){
+        case ("dmg"):
+            this.pos = [32 * 5, 0];
+            this.frames = [0,1];
+            this.once = true;
+            break;
+        default:
+            this.state = "dmg";
+            this.pos = [32 * 5, 0];
+            this.frames = [0,1];
+            this.once = true;
+    }
+
+    this._index += this.speed*dt;
+}
+
+HitSprite.prototype.render = function(ctx) {
+    var frame;
+
+    if(this.speed > 0) {
+        var max = this.frames.length;
+        var idx = Math.floor(this._index);
+        frame = this.frames[idx % max];
+
+        if(this.once && idx >= max) {
+            this.done = true;
+            return;
+        }
+        if(idx >= max) {    // these are the actions that cannot be interrupted once begun and reset to idle after completion
+            if(this.state === "hit"){
+                return;
+            }
+            this._index = 0;
+        }
+    }
+    else {
+        frame = 0;
+    }
+
+
+    var x = this.pos[0];
+    var y = this.pos[1];
+    if(this.dir == 'vertical') {
+        y += frame * this.size[1];
+    }
+    else {
+        x += frame * this.size[0];
+    }
+    if(this.flipped){
+        ctx.scale(-1, 1);
+        ctx.drawImage(resources.get(this.url),
+                  x, y,
+                  this.size[0], this.size[1],
+                  0, 0,
+                  -this.size[0], this.size[1]);
+        ctx.restore();
+    }
+    else{
+        ctx.drawImage(resources.get(this.url),
+                  x, y,
+                  this.size[0], this.size[1],
+                  0, 0,
+                  this.size[0], this.size[1]);
+    }
+}
+
 
 function PlayerSprite(url, pos, size, boxpos, boxsize, speed, frames, color, dir, once, state) {
     this.state;

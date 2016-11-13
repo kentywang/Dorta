@@ -827,6 +827,23 @@ function updateEntities(dt) {
             }
         }
     })
+    
+    // update hit effects
+    for(var i = 0; i < explosions.length; i++){
+        if(explosions[i].direction === "LEFT"){
+            explosions[i].sprite.flipped = true;
+        }else{
+            explosions[i].sprite.flipped = false;
+        }
+
+        explosions[i].sprite.update(dt);
+
+        if(explosions[i].sprite.done){
+            explosions.splice(i,1);
+            i--;
+        }
+
+    }
 
 }
 
@@ -855,10 +872,26 @@ function checkCollisions(dt) {
         playerSize.push(player.sprite.boxsize);
     })
 
+
+
+    function midPlayer(player1, player2){  
+        // once you find your center 
+       return [(((player1.pos[0] + player1.sprite.boxpos[0] + player1.pos[0] + player1.sprite.boxpos[0] + player1.sprite.boxsize[0])/2) + ((player2.pos[0] + player2.sprite.boxpos[0] + player2.pos[0] + player2.sprite.boxpos[0] + player2.sprite.boxsize[0])/2))/2 - 16,
+        (((player1.pos[1] + player1.sprite.boxpos[1] + player1.pos[1] + player1.sprite.boxpos[1] + player1.sprite.boxsize[1])/2) + ((player2.pos[1] + player2.sprite.boxpos[1] + player2.pos[1] + player2.sprite.boxpos[1] + player2.sprite.boxsize[1])/2))/2 -16]; // -16 to account for sprite size of 32X32
+        // you are sure to win ~
+    };
+
+
+
     // both players must be touching AND neither can be invulnerable if damage is to occur
     if(boxCollides(playerPos[0], playerSize[0], playerPos[1], playerSize[1]) && (player1.invulnerable < Date.now() - invulnerableTime && player2.invulnerable < Date.now() - invulnerableTime)) {
         if(player1.sprite.priority > player2.sprite.priority){
             if(player1.sprite.priority > 0){
+                explosions.push({ 
+                        pos: midPlayer(player1, player2),
+                        direction: player1.direction,
+                        sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
+                       })
                 player2.damaged(player1);
             }
         }else if(player1.sprite.priority < player2.sprite.priority){
@@ -1094,7 +1127,7 @@ function render() {
 
     renderEntities(player1.shots);
     renderEntities(player2.shots);
-    // renderEntities(explosions);
+    renderEntities(explosions);
 
     // render hp
     renderHealth(player1);
@@ -1167,7 +1200,7 @@ function renderEntities(list) {
         ctx.save();
         ctx.translate(list[i].pos[0], list[i].pos[1]);
         //  this will check if enough time has passed before rendering shot
-        if(Date.now() - list[i].fireTime > shotChargeTime){
+        if(list[i].sprite.state === "dmg" || Date.now() - list[i].fireTime > shotChargeTime){
             list[i].sprite.render(ctx);
         }
         ctx.restore();
