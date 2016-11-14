@@ -10,10 +10,6 @@ var requestAnimFrame = (function(){
 })();
 
 
-// Audio
-window.AudioContext = window.AudioContext || window.webkitAudioContext;
-    var context = new AudioContext();
-
 // Create the canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
@@ -33,15 +29,13 @@ var midPt;
 var slowMidPt = 5;
 var whoLostLast = 0;
 var drawNow = false;
+
 function main() {
 
-// if(input.isDown('UP')){
-//     socket.emit('up', session());
-// }
-    //console.log(io)
+
     var now = Date.now();
     var dt = (now - lastTime) / 1000.0;
-
+ //console.log(shakeUntil);
     if(gameState === "menu"){
         animatedScreen(now);
     }
@@ -122,12 +116,6 @@ function animatedScreen(now) {
 };
 
 
-// socket stuff
-var gameId = _.last(window.location.href.split('/'));
-
-  function session() {
-    return { playerId: null, gameId, playerName: "anon" };
-  }
 var player1 = {
     who: 1,
     health: maxHealth,
@@ -142,17 +130,17 @@ var player1 = {
     lastPunch: Date.now(),
     direction: 'RIGHT',
     shots: [],
-    keys: {
-        UP: "UP",
-        DOWN: "DOWN",
-        LEFT: "LEFT",
-        RIGHT: "RIGHT",
-        JUMP: "SPACE",
-        BASIC: "Q",
-        SPECIAL: "W",
-        ULTI: "F"
-    },
-    damaged: dmg,
+    // keys: {
+    //     UP: "UP",
+    //     DOWN: "DOWN",
+    //     LEFT: "LEFT",
+    //     RIGHT: "RIGHT",
+    //     JUMP: "SPACE",
+    //     BASIC: "Q",
+    //     SPECIAL: "W",
+    //     ULTI: "F"
+    // },
+    //damaged: dmg,
     invulnerable: Date.now(),
     lastRegen: Date.now(),
     lastStableHp: maxHealth,
@@ -175,17 +163,17 @@ var player2 = {
     lastPunch: Date.now(),
     direction: 'LEFT',
     shots: [],
-    keys: {
-        UP: "U",
-        DOWN: "E",
-        LEFT: "N",
-        RIGHT: "I",
-        JUMP: "C",
-        BASIC: "1",
-        SPECIAL: "2",
-        ULTI: "3"
-    },
-    damaged: dmg,
+    // keys: {
+    //     UP: "U",
+    //     DOWN: "E",
+    //     LEFT: "N",
+    //     RIGHT: "I",
+    //     JUMP: "C",
+    //     BASIC: "1",
+    //     SPECIAL: "2",
+    //     ULTI: "3"
+    // },
+    //damaged: dmg,
     invulnerable: Date.now(),
     lastRegen: Date.now(),
     lastStableHp: maxHealth,
@@ -201,35 +189,146 @@ var player2 = {
       socket.emit('joinGame');
     });
 
+    socket.on('comeJoin', function(){
+        socket.emit('joinGame');
+    })
+
     socket.on('gameState', function(state) {
-      //console.log(state);
-      player2.pos = state.player2.pos;
-      player2.sprite.state = state.player2.sprite.state;
-      player2.sprite.speed = state.player2.sprite.speed
-      //console.log("socket p2",player2.sprite.state)
-      //player2.pos = state.pos;
-      //player2.sprite.state= state.sprite.state;
-      //player2.sprite = state.sprite;
-      // if(me() && me().state == "dying") { 
-      //   app.achievements.resetKillStreak();
+
+
+      player1.health = state.player1.health;
+      player1.capacity = state.player1.capacity;
+      player1.pos = state.player1.pos;
+      // player1.velocityX = state.player1.velocityX;
+      // player1.velocityY = state.player1.velocityY;
+
+      player1.lastJump = state.player1.lastJump;
+      player1.lastLand = state.player1.lastLand;
+      player1.lastKick = state.player1.lastKick;
+      player1.lastPunch = state.player1.lastPunch;
+      player1.direction = state.player1.direction;
+      
+      // player1.shots.forEach((shot, index) => {
+
+      //    shot.sprite.state= state.player1.shots[index].sprite.state;
+      //    shot.sprite.priority = state.player1.shots[index].sprite.priority;
+      //    shot.sprite.flipped= state.player1.shots[index].sprite.flipped;
+      //    shot.sprite.pos= state.player1.shots[index].sprite.pos;
+      //    shot.sprite.size= state.player1.shots[index].sprite.size;
+      //    shot.sprite.boxpos = state.player1.shots[index].sprite.boxpos;
+      //    shot.sprite.boxsize= state.player1.shots[index].sprite.boxsize;
+      //    shot.sprite.speed = state.player1.shots[index].sprite.speed;
+      //    shot.sprite.frames= state.player1.shots[index].sprite.frames;
+      //    shot.sprite._index = state.player1.shots[index].sprite._index;
+      //    shot.sprite.url= state.player1.shots[index].sprite.url;
+      //    shot.sprite.dir = state.player1.shots[index].sprite.dir;
+      //    shot.sprite.once= state.player1.shots[index].once;
+      // })
+
+      // if(state.player1.shots.length>player1.shots.length){
+      //   var xx = state.player1.shots[state.player1.shots.length-1]
+      //   player1.shots.push({ pos: xx.pos,
+      //                  direction: xx.direction,
+      //                  sprite: new Sprite(xx.sprite.url, [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3]),
+      //                  fireTime: xx.fireTime,
+      //                  speed: xx.shotSpeed
+      //              })
       // }
+
+      // if(state.player1.shots.length<player1.shots.length){
+      //   player
+      // }
+
+
+
+
+
+
+      //player1.keys = state.player1.keys;
+      //player1.damaged = state.player1.damaged;
+      player1.invulnerable = state.player1.invulnerable;
+      player1.lastRegen = state.player1.lastRegen;
+      //player1.lastStableHp = state.player1.lastStableHp;
+      //player1.lastStableCp = state.player1.lastStableCp;
+      player1.lastTp = state.player1.lastTp;
+      player1.lastUppercut = state.player1.lastUppercut;
+
+      player1.sprite.state= state.player1.sprite.state;
+      player1.sprite.priority = state.player1.sprite.priority;
+      player1.sprite.pos= state.player1.sprite.pos;
+      player1.sprite.color = state.player1.sprite.color;
+      player1.sprite.size= state.player1.sprite.size;
+      player1.sprite.boxpos = state.player1.sprite.boxpos;
+      player1.sprite.boxsize= state.player1.sprite.boxsize;
+      player1.sprite.speed = state.player1.sprite.speed;
+      player1.sprite.frames= state.player1.sprite.frames;
+      player1.sprite._index = state.player1.sprite._index;
+      player1.sprite.url= state.player1.sprite.url;
+      player1.sprite.dir = state.player1.sprite.dir;
+      player1.sprite.once= state.player1.sprite.once;
+      player1.sprite.resetFrame = state.player1.sprite.resetFrame;
+
+
+      player2.health = state.player2.health;
+      player2.capacity = state.player2.capacity;
+      player2.pos = state.player2.pos;
+      // player2.velocityX = state.player2.velocityX;
+      // player2.velocityY = state.player2.velocityY;
+
+      player2.lastJump = state.player2.lastJump;
+      player2.lastLand = state.player2.lastLand;
+      player2.lastKick = state.player2.lastKick;
+      player2.lastPunch = state.player2.lastPunch;
+      player2.direction = state.player2.direction;
+      //player2.shots = state.player2.shots;
+      //player2.keys = state.player2.keys;
+      //player2.damaged = state.player2.damaged;
+      player2.invulnerable = state.player2.invulnerable;
+      player2.lastRegen = state.player2.lastRegen;
+      // player2.lastStableHp = state.player2.lastStableHp;
+      // player2.lastStableCp = state.player2.lastStableCp;
+      player2.lastTp = state.player2.lastTp;
+      player2.lastUppercut = state.player2.lastUppercut;
+
+      player2.sprite.state= state.player2.sprite.state;
+      player2.sprite.priority = state.player2.sprite.priority;
+      player2.sprite.pos= state.player2.sprite.pos;
+      player2.sprite.color = state.player2.sprite.color;
+      player2.sprite.size= state.player2.sprite.size;
+      player2.sprite.boxpos = state.player2.sprite.boxpos;
+      player2.sprite.boxsize= state.player2.sprite.boxsize;
+      player2.sprite.speed = state.player2.sprite.speed;
+      player2.sprite.frames= state.player2.sprite.frames;
+      player2.sprite._index = state.player2.sprite._index;
+      player2.sprite.url= state.player2.sprite.url;
+      player2.sprite.dir = state.player2.sprite.dir;
+      player2.sprite.once= state.player2.sprite.once;
+      player2.sprite.resetFrame = state.player2.sprite.resetFrame;
+
+       // lastTime = state.lastTime
+        framesToSkip= state.framesToSkip
+        disableControls= state.disableControls
+        endFrameSkipDuration= state.endFrameSkipDuration
+        midPt= state.midPt
+        slowMidPt= state.slowMidPt
+        whoLostLast= state.whoLostLast
+        drawNow= state.drawNow
+        // players= state.players
+        explosions= state.explosions
+        gameState= state.gameState
+        gameStateSet= state.gameStateSet
+        gameTime= state.gameTime
+        isGameOver= state.isGameOver
+        shakeUntil = state.shakeUntil
+        //console.log(state)
       // applyGravity();
-      //console.log(state.pos, state.sprite)
+
     });
 function init() {
 
 
-
-
-
-    // var bufferLoader = new BufferLoader(
-    //     context,
-    //     [
-    //     ],
-    //     finishedLoading
-    //     );
-
-    // bufferLoader.load();
+    player1.lastStableHp = maxHealth;
+    player2.lastStableHp = maxHealth;
 
 
     ctx.imageSmoothingEnabled = false;
@@ -289,7 +388,7 @@ resources.onReady(init);
 
 
 // Speed in pixels per second
-var playerSpeed = 70;
+// var playerSpeed = 70;
 var normalSpeed = 6;    // frames per second of sprite
 var shotSpeed = 160;
 var invulnerableTime = 800;
@@ -320,9 +419,7 @@ var shakeDuration = 200;
 var shakeUntil = 0;
 
 // Utility functions
-function numberBetween(n, m){
-    return Math.ceil(Math.random() * (m - n) + n);
-}
+
 // Shake, shake, shake
 function preShake() {
   ctx.save();
@@ -352,126 +449,126 @@ function midPlayer(player1, player2, flair){
 };
 
 // Damage mechanics (using arrow function to preserve "this" context)
-function dmg(player){
-    var pushback = (pts, whereTo) => {
-        if(pts){    // ensure crouch doesn't do dmg
-            this.health -= pts;
-            this.capacity += pts * 1.8;
-        }
-        if(this.capacity < bounceCapacity2){
-            switch(whereTo){
-            case("sideUp"):
-                this.velocityY = -this.capacity/4;
+// function dmg(player){
+//     var pushback = (pts, whereTo) => {
+//         if(pts){    // ensure crouch doesn't do dmg
+//             this.health -= pts;
+//             this.capacity += pts * 1.8;
+//         }
+//         if(this.capacity < bounceCapacity2){
+//             switch(whereTo){
+//             case("sideUp"):
+//                 this.velocityY = -this.capacity/4;
 
-                if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/6;
-                }else{
-                    this.velocityX = this.capacity/6;
-                }
-                break;
-            case("down"):
-                this.velocityY = this.capacity;
+//                 if(this.direction === "RIGHT"){
+//                     this.velocityX = -this.capacity/6;
+//                 }else{
+//                     this.velocityX = this.capacity/6;
+//                 }
+//                 break;
+//             case("down"):
+//                 this.velocityY = this.capacity;
 
-                if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/4;
-                }else{
-                    this.velocityX = this.capacity/4;
-                }
-                break;
-            case("sideDown"):
-                this.velocityY = this.capacity/4;
+//                 if(this.direction === "RIGHT"){
+//                     this.velocityX = -this.capacity/4;
+//                 }else{
+//                     this.velocityX = this.capacity/4;
+//                 }
+//                 break;
+//             case("sideDown"):
+//                 this.velocityY = this.capacity/4;
 
-                if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/2;
-                }else{
-                    this.velocityX = this.capacity/2;
-                }
-                break;
-            default:
-                if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/2;
-                }else{
-                    this.velocityX = this.capacity/2;
-                }
-            }
-        }else{
-            switch(whereTo){
-            case("sideUp"):
-                this.velocityY = -this.capacity/2;
+//                 if(this.direction === "RIGHT"){
+//                     this.velocityX = -this.capacity/2;
+//                 }else{
+//                     this.velocityX = this.capacity/2;
+//                 }
+//                 break;
+//             default:
+//                 if(this.direction === "RIGHT"){
+//                     this.velocityX = -this.capacity/2;
+//                 }else{
+//                     this.velocityX = this.capacity/2;
+//                 }
+//             }
+//         }else{
+//             switch(whereTo){
+//             case("sideUp"):
+//                 this.velocityY = -this.capacity/2;
 
-                if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/4;
-                }else{
-                    this.velocityX = this.capacity/4;
-                }
-                break;
-            case("down"):
-                this.velocityY = groundBounceVelocity +this.capacity;
+//                 if(this.direction === "RIGHT"){
+//                     this.velocityX = -this.capacity/4;
+//                 }else{
+//                     this.velocityX = this.capacity/4;
+//                 }
+//                 break;
+//             case("down"):
+//                 this.velocityY = groundBounceVelocity +this.capacity;
 
-                if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/4;
-                }else{
-                    this.velocityX = this.capacity/4;
-                }
-                break;
-            case("sideDown"):
-                this.velocityY = Math.max(groundBounceVelocity, this.capacity);
+//                 if(this.direction === "RIGHT"){
+//                     this.velocityX = -this.capacity/4;
+//                 }else{
+//                     this.velocityX = this.capacity/4;
+//                 }
+//                 break;
+//             case("sideDown"):
+//                 this.velocityY = Math.max(groundBounceVelocity, this.capacity);
 
-                if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/2;
-                }else{
-                    this.velocityX = this.capacity/2;
-                }
-                break;
-            default:
-                this.velocityY = -this.capacity/4
-                if(this.direction === "RIGHT"){
-                    this.velocityX = -this.capacity/2;
-                }else{
-                    this.velocityX = this.capacity/2;
-                }
-            }
-        }
+//                 if(this.direction === "RIGHT"){
+//                     this.velocityX = -this.capacity/2;
+//                 }else{
+//                     this.velocityX = this.capacity/2;
+//                 }
+//                 break;
+//             default:
+//                 this.velocityY = -this.capacity/4
+//                 if(this.direction === "RIGHT"){
+//                     this.velocityX = -this.capacity/2;
+//                 }else{
+//                     this.velocityX = this.capacity/2;
+//                 }
+//             }
+//         }
         
-        framesToSkip = 10;
-        this.invulnerable = Date.now();
-        this.sprite.state = "hurt";
-    }
+//         framesToSkip = 10;
+//         this.invulnerable = Date.now();
+//         this.sprite.state = "hurt";
+//     }
 
-    switch(player.sprite.state){
-        case ("crouch"):
-            if(this.direction === "RIGHT"){
-                this.velocityX = -playerJump /4;
-                player.velocityX = playerJump /4;
-            }else{
-                this.velocityX = playerJump /4;
-                player.velocityX = -playerJump /4;
-            }
-            framesToSkip = 1;
-            break;
-        case ("uppercut"):
-            pushback(numberBetween(8,10), "sideUp");
-            break;
-        case ("downkick"):
-            pushback(numberBetween(12,18), "down");
-            break;
-        case ("punch"):
-            pushback(numberBetween(11,13));
-            break;
-        case ("airkick"):
-            pushback(numberBetween(12,14));
-            break;
-        case ("sidekick"):
-            pushback(numberBetween(11,17), "sideDown");
-            break;
-        case ("moving"):
-            pushback(player.speed/8);
-            player.sprite.state = "hit";
-            break;
-        default:
-            break;
-    }
-}
+//     switch(player.sprite.state){
+//         case ("crouch"):
+//             if(this.direction === "RIGHT"){
+//                 this.velocityX = -playerJump /4;
+//                 player.velocityX = playerJump /4;
+//             }else{
+//                 this.velocityX = playerJump /4;
+//                 player.velocityX = -playerJump /4;
+//             }
+//             framesToSkip = 1;
+//             break;
+//         case ("uppercut"):
+//             pushback(numberBetween(8,10), "sideUp");
+//             break;
+//         case ("downkick"):
+//             pushback(numberBetween(12,18), "down");
+//             break;
+//         case ("punch"):
+//             pushback(numberBetween(11,13));
+//             break;
+//         case ("airkick"):
+//             pushback(numberBetween(12,14));
+//             break;
+//         case ("sidekick"):
+//             pushback(numberBetween(11,17), "sideDown");
+//             break;
+//         case ("moving"):
+//             pushback(player.speed/8);
+//             player.sprite.state = "hit";
+//             break;
+//         default:
+//             break;
+//     }
+// }
 
 // Game state
 
@@ -484,7 +581,6 @@ var gameState = "menu";
 var gameStateSet = 0;
 var gameTime = 0;
 var isGameOver;
-var terrainPattern;
 
 // Update game objects
 function update(dt) {
@@ -539,6 +635,8 @@ function handleInput(dt){
         JUMP: input.isDown("space"),
         BASIC: input.isDown("q"),
         SPECIAL: input.isDown("w")}
+
+        
 
     socket.emit('handleInput', obj , dt);
 
@@ -856,57 +954,55 @@ function handleInput(dt){
 
 function updateEntities(dt) {
 
-    players.forEach(player => {
-        // Update the player sprite animation
-        //console.log(player.who, player.sprite.state);
-        //console.log(player.who, player.sprite.state)
-        player.sprite.update(dt);
+players.forEach(player => {
+       //player.sprite.update(dt);
 
-    //     // Update all the shots
-    //     for(var i=0; i<player.shots.length; i++) {
-    //         //  this will check if enough time has passed before moving shot
-    //         if(Date.now() - player.shots[i].fireTime < shotChargeTime){ 
-    //             if(player.sprite.state === "hurt"){
-    //                 player.shots[i].sprite.done = true;
-    //             }
-    //             break;
-    //         }
+        // Update all the shots
+        for(var i=0; i<player.shots.length; i++) {
+            //  this will check if enough time has passed before moving shot
+            if(Date.now() - player.shots[i].fireTime < shotChargeTime){ 
+                if(player.sprite.state === "hurt"){
+                    player.shots[i].sprite.done = true;
+                }
+                break;
+            }
 
-    //         var shot = player.shots[i];
+            var shot = player.shots[i];
 
-    //         if(shot.sprite.state === "moving"){           
-    //             switch(shot.direction) {
-    //                 case 'LEFT': shot.pos[0] -= shot.speed * dt; break;
-    //                 case 'RIGHT': shot.pos[0] += shot.speed * dt; break;
-    //                 default:
-    //                     shot.pos[0] = 0;
-    //             }
-    //         }
+            if(shot.sprite.state === "moving"){
+            console.log(shot.pos[0])           
+                switch(shot.direction) {
+                    case 'LEFT': shot.pos[0] -= shot.speed * dt; break;
+                    case 'RIGHT': shot.pos[0] += shot.speed * dt; break;
+                    default:
+                        shot.pos[0] = 0;
+                }
+            }
 
-    //         // flip shot if direction is left
-    //         if(shot.direction === "LEFT"){
-    //             shot.sprite.flipped = true;
-    //         }else{
-    //             shot.sprite.flipped = false;
-    //         }
+            // flip shot if direction is left
+            if(shot.direction === "LEFT"){
+                shot.sprite.flipped = true;
+            }else{
+                shot.sprite.flipped = false;
+            }
 
-    //         player.shots[i].sprite.update(dt);
+            player.shots[i].sprite.update(dt);
 
-    //         // Remove the shot if it goes offscreen
-    //         if(shot.pos[1] < 0 || shot.pos[1] > canvas.height ||
-    //            shot.pos[0] > canvas.width || shot.pos[0] + shot.sprite.boxsize[0] + shot.sprite.boxpos[0]< 0) {
-    //             player.shots.splice(i, 1);
-    //             i--;
-    //         }
+            // Remove the shot if it goes offscreen
+            if(shot.pos[1] < 0 || shot.pos[1] > canvas.height ||
+               shot.pos[0] > canvas.width || shot.pos[0] + shot.sprite.boxsize[0] + shot.sprite.boxpos[0]< 0) {
+                player.shots.splice(i, 1);
+                i--;
+            }
 
-    //         if(shot.sprite.done) {
-    //             player.shots.splice(i, 1);
-    //             i--;
-    //         }
-    //     }
-    })
+            if(shot.sprite.done) {
+                player.shots.splice(i, 1);
+                i--;
+            }
+        }
+   })
     
-    // // update hit effects
+    // update hit effects
     // for(var i = 0; i < explosions.length; i++){
     //     if(explosions[i].direction === "LEFT"){
     //         explosions[i].sprite.flipped = true;
@@ -1208,9 +1304,9 @@ function render() {
     renderEntity(player1);
     renderEntity(player2);
 
-    renderEntities(player1.shots);
-    renderEntities(player2.shots);
-    renderEntities(explosions);
+    // renderEntities(player1.shots);
+    // renderEntities(player2.shots);
+    // renderEntities(explosions);
 
     // render hp
     renderHealth(player1);

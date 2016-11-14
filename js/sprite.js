@@ -260,7 +260,7 @@ PlayerSprite.prototype.update = function(dt) {
             this.url = `img/cat${this.color}.png`;
             this.pos = [0, 64*3];
             this.frames = [3, 4, 5, 6];
-            this.speed *= 1.5;
+            //this.speed *=;
             this.priority = -2;
             break;
         case "tp":
@@ -296,7 +296,7 @@ PlayerSprite.prototype.update = function(dt) {
 PlayerSprite.prototype.render = function(ctx) {
     var frame;
 
-console.log(this.speed)
+// console.log(this.speed)
     if(this.speed > 0) {
         var max = this.frames.length;
         var idx = Math.floor(this._index);

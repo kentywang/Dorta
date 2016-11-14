@@ -76,22 +76,22 @@ Sprite.prototype.render = function(ctx) {
     else {
         x += frame * this.size[0];
     }
-    if(this.flipped){
-        ctx.scale(-1, 1);
-        ctx.drawImage(resources.get(this.url),
-                  x, y,
-                  this.size[0], this.size[1],
-                  0, 0,
-                  -this.size[0], this.size[1]);
-        ctx.restore();
-    }
-    else{
-        ctx.drawImage(resources.get(this.url),
-                  x, y,
-                  this.size[0], this.size[1],
-                  0, 0,
-                  this.size[0], this.size[1]);
-    }
+    // if(this.flipped){
+    //     ctx.scale(-1, 1);
+    //     ctx.drawImage(resources.get(this.url),
+    //               x, y,
+    //               this.size[0], this.size[1],
+    //               0, 0,
+    //               -this.size[0], this.size[1]);
+    //     ctx.restore();
+    // }
+    // else{
+    //     ctx.drawImage(resources.get(this.url),
+    //               x, y,
+    //               this.size[0], this.size[1],
+    //               0, 0,
+    //               this.size[0], this.size[1]);
+    // }
 }
 
 function HitSprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once, state) {
@@ -159,22 +159,22 @@ HitSprite.prototype.render = function(ctx) {
     else {
         x += frame * this.size[0];
     }
-    if(this.flipped){
-        ctx.scale(-1, 1);
-        ctx.drawImage(resources.get(this.url),
-                  x, y,
-                  this.size[0], this.size[1],
-                  0, 0,
-                  -this.size[0], this.size[1]);
-        ctx.restore();
-    }
-    else{
-        ctx.drawImage(resources.get(this.url),
-                  x, y,
-                  this.size[0], this.size[1],
-                  0, 0,
-                  this.size[0], this.size[1]);
-    }
+    // if(this.flipped){
+    //     ctx.scale(-1, 1);
+    //     ctx.drawImage(resources.get(this.url),
+    //               x, y,
+    //               this.size[0], this.size[1],
+    //               0, 0,
+    //               -this.size[0], this.size[1]);
+    //     ctx.restore();
+    // }
+    // else{
+    //     ctx.drawImage(resources.get(this.url),
+    //               x, y,
+    //               this.size[0], this.size[1],
+    //               0, 0,
+    //               this.size[0], this.size[1]);
+    // }
 }
 
 
@@ -294,7 +294,6 @@ PlayerSprite.prototype.update = function(dt) {
             this.frames = [0, 1, 2, 3];
             this.priority = 0;
     }
-
     this._index += this.speed*dt;
 }
 
@@ -331,22 +330,22 @@ PlayerSprite.prototype.render = function(ctx) {
     else {
         x += frame * this.size[0];
     }
-    if(this.flipped){
-        ctx.save();
-        ctx.scale(-1, 1);
-        ctx.drawImage(resources.get(this.url),
-                  x, y,
-                  this.size[0], this.size[1],
-                  0, 0,
-                  -this.size[0], this.size[1]);
-        ctx.restore();
-    }else{
-        ctx.drawImage(resources.get(this.url),
-                  x, y,
-                  this.size[0], this.size[1],
-                  0, 0,
-                  this.size[0], this.size[1]);
-    }
+    // if(this.flipped){
+    //     ctx.save();
+    //     ctx.scale(-1, 1);
+    //     ctx.drawImage(resources.get(this.url),
+    //               x, y,
+    //               this.size[0], this.size[1],
+    //               0, 0,
+    //               -this.size[0], this.size[1]);
+    //     ctx.restore();
+    // }else{
+    //     ctx.drawImage(resources.get(this.url),
+    //               x, y,
+    //               this.size[0], this.size[1],
+    //               0, 0,
+    //               this.size[0], this.size[1]);
+    // }
 }
 
 
@@ -367,7 +366,6 @@ var tpCd = 2 * 1000;
 var uppercutCd = 1.4 * 1000;
 var shotChargeTime = .5 * 1000;
 
-
 // Physics
 var playerJump = 300;
 var gravityAccelerationY = 800;
@@ -381,17 +379,10 @@ var shakeCd = 1 * 1000;
 var shakeDuration = 200;
 var shakeUntil = 0;
 
-
-
 var canvas = {
 width: 272,
 height: 160
 }
-
-// document.body.appendChild(canvas);
-
-
-//var socket = null;
 
 // The main game loop
 var lastTime;
@@ -431,7 +422,7 @@ var player1 = {
     damaged: dmg,
     invulnerable: Date.now(),
     lastRegen: Date.now(),
-    lastStableHp: maxHealth,
+    //lastStableHp: maxHealth,
     lastStableCp: 0,
     lastTp: Date.now(),
     lastUppercut: Date.now()
@@ -464,28 +455,28 @@ var player2 = {
     damaged: dmg,
     invulnerable: Date.now(),
     lastRegen: Date.now(),
-    lastStableHp: maxHealth,
+    //lastStableHp: maxHealth,
     lastStableCp: 0,
     lastTp: Date.now(),
     lastUppercut: Date.now()
 };
 
 var players = [player1, player2];
-var enemies = [];
 var explosions = [];
 
-var gameState = "menu";
+var gameState = "play";
 var gameStateSet = 0;
 var gameTime = 0;
 var isGameOver;
-var terrainPattern;
 
-
+var x = 0;
 function main() {
-
+// console.log(x++)
     var now = Date.now();
     var dt = (now - lastTime) / 1000.0;
 
+
+    //console.log(player1.velocityX)
     // if(gameState === "menu"){
     //     animatedScreen(now);
     // }
@@ -494,20 +485,36 @@ function main() {
     //         preShake();
     //     }
 
-    //     if(framesToSkip === 0){
+        if(framesToSkip === 0){
             update(dt);
-        //     render();
-        // }
-        // if(framesToSkip > 0){
+            render();
+        }
+        if(framesToSkip > 0){
         // // skip a frame if hit was registered in either player's .damage method
-        //     framesToSkip--;
-        // }
+            framesToSkip--;
+        }
         //exports.bringIntoGame = bringIntoGame;
 		// exports.handleInput = handleInput;
 		// exports.gameState = {player2}
         // postShake();
         lastTime = now;
-    //}
+    exports.gameState = {lastTime,
+		framesToSkip,
+		disableControls,
+		endFrameSkipDuration,
+		midPt,
+		slowMidPt,
+		whoLostLast,
+		drawNow,
+		player1,
+		player2,
+		players,
+		explosions,
+		gameState,
+		gameStateSet,
+		gameTime,
+		isGameOver,
+		shakeUntil}
 
 
 };
@@ -517,7 +524,7 @@ function main() {
 
 // initialization
 (function init() {
-    //reset(true);
+    reset(false);
     lastTime = Date.now();
     setInterval(main, 1000 / 60)
 })();
@@ -679,21 +686,14 @@ function dmg(player){
 }
 
 
-function up(game, playerId, playerName){
-	//console.log(player2.pos)
-	player2up();
-	//Game.getPlayer(playerId).up();
-}
-
 // Update game objects
 function update(dt) {
     gameTime += dt;
 
     midPt = (player1.pos[0]+player1.sprite.boxpos[0] + player2.pos[0] + player2.sprite.boxpos[0] + player2.sprite.boxsize[0])/2 - 136;
 
-    // if(gameState === "over" && whoLostLast > 0 && input.isDown('ENTER')){
-    //     reset();
-    // }
+    if(gameState === "over" && whoLostLast > 0){setTimeout(reset,3000)
+    }
 
     players.forEach(player => {
         if(Date.now() - gameStateSet < 1000){
@@ -720,7 +720,7 @@ function update(dt) {
     })
 
 
-   if(!disableControls){ handleInput(dt);}
+   // if(!disableControls){ handleInput(pressedKeys, playerNo, dt);}
     processPhysics(dt);
     updateEntities(dt);
     checkCollisions(dt);
@@ -728,18 +728,19 @@ function update(dt) {
 
 	
 function handleInput(pressedKeys, playerNo, dt) {
+	if(disableControls){return;}
     //console.log(player2.sprite.state)
-	//console.log(pressedKeys)
-	console.log(playerNo)
+	//console.log("in handle input", pressedKeys, playerNo)
 	if(playerNo === 1){
  		player = player1;
 	}else{
 		player = player2;
 	}
-    	//console.log(pressedKeys);
+    	//console.log(player);
     switch(player.sprite.state){
         case("idle"):
             if(pressedKeys['JUMP'] && pressedKeys['LEFT']) {
+
                 player.sprite.state = "jump";
                 player.velocityY = -playerJump;
                 player.velocityX = -playerJump/4;
@@ -754,6 +755,7 @@ function handleInput(pressedKeys, playerNo, dt) {
             }
 
             else if(pressedKeys['JUMP']) {
+            	//console.log("humg!")
                 player.sprite.state = "jump";
                 player.velocityY = -playerJump;
                 player.lastJump = Date.now();
@@ -810,26 +812,26 @@ function handleInput(pressedKeys, playerNo, dt) {
                 player.lastTp = Date.now();
             }
 
-            else if(pressedKeys['SPECIAL']) {
-                //  break if last shot in array isn't past cooldown timing
-                if(player.shots.length && Date.now() - player.shots[player.shots.length - 1].fireTime < supershotCd){ 
-                    break;}
+            // else if(pressedKeys['SPECIAL']) {
+            //     //  break if last shot in array isn't past cooldown timing
+            //     if(player.shots.length && Date.now() - player.shots[player.shots.length - 1].fireTime < supershotCd){ 
+            //         break;}
 
-                player.sprite.state = "supershot";
+            //     player.sprite.state = "supershot";
 
-                var x = player.pos[0] + player.sprite.boxsize[0] / 4;
-                var y = player.pos[1] + player.sprite.boxsize[1] / 8;
-                player.shots.push({ pos: [x, y],
-                       direction: player.direction,
-                       sprite: new Sprite('img/shot.png', [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3]),
-                       fireTime: Date.now(),
-                       speed: shotSpeed
-                   });
-            }
+            //     var x = player.pos[0] + player.sprite.boxsize[0] / 4;
+            //     var y = player.pos[1] + player.sprite.boxsize[1] / 8;
+            //     player.shots.push({ pos: [x, y],
+            //            direction: player.direction,
+            //            sprite: new Sprite('img/shot.png', [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3]),
+            //            fireTime: Date.now(),
+            //            speed: shotSpeed
+            //        });
+            // }
             
             else if(pressedKeys['LEFT']) {
                 player.sprite.state = "walk";
-                player.pos[0] -= playerSpeed * dt;    
+                player.pos[0] -= playerSpeed * dt;  
             }
 
             else if(pressedKeys['RIGHT']) {
@@ -1019,6 +1021,7 @@ function handleInput(pressedKeys, playerNo, dt) {
             }
             break;
         default:
+        //console.log(player.who, player.sprite.state)
             break;
     }
 }
@@ -1048,66 +1051,66 @@ function updateEntities(dt) {
         player.sprite.update(dt);
         //console.log(player.sprite);
 
-        // Update all the shots
-    //     for(var i=0; i<player.shots.length; i++) {
-    //         //  this will check if enough time has passed before moving shot
-    //         if(Date.now() - player.shots[i].fireTime < shotChargeTime){ 
-    //             if(player.sprite.state === "hurt"){
-    //                 player.shots[i].sprite.done = true;
-    //             }
-    //             break;
-    //         }
+       ////Update all the shots
+        for(var i=0; i<player.shots.length; i++) {
+            //  this will check if enough time has passed before moving shot
+            if(Date.now() - player.shots[i].fireTime < shotChargeTime){ 
+                if(player.sprite.state === "hurt"){
+                    player.shots[i].sprite.done = true;
+                }
+                break;
+            }
 
-    //         var shot = player.shots[i];
+            var shot = player.shots[i];
 
-    //         if(shot.sprite.state === "moving"){           
-    //             switch(shot.direction) {
-    //                 case 'LEFT': shot.pos[0] -= shot.speed * dt; break;
-    //                 case 'RIGHT': shot.pos[0] += shot.speed * dt; break;
-    //                 default:
-    //                     shot.pos[0] = 0;
-    //             }
-    //         }
+            if(shot.sprite.state === "moving"){           
+                switch(shot.direction) {
+                    case 'LEFT': shot.pos[0] -= shot.speed * dt; break;
+                    case 'RIGHT': shot.pos[0] += shot.speed * dt; break;
+                    default:
+                        shot.pos[0] = 0;
+                }
+            }
 
-    //         // flip shot if direction is left
-    //         if(shot.direction === "LEFT"){
-    //             shot.sprite.flipped = true;
-    //         }else{
-    //             shot.sprite.flipped = false;
-    //         }
+            // flip shot if direction is left
+            if(shot.direction === "LEFT"){
+                shot.sprite.flipped = true;
+            }else{
+                shot.sprite.flipped = false;
+            }
 
-    //         player.shots[i].sprite.update(dt);
+            player.shots[i].sprite.update(dt);
 
-    //         // Remove the shot if it goes offscreen
-    //         if(shot.pos[1] < 0 || shot.pos[1] > canvas.height ||
-    //            shot.pos[0] > canvas.width || shot.pos[0] + shot.sprite.boxsize[0] + shot.sprite.boxpos[0]< 0) {
-    //             player.shots.splice(i, 1);
-    //             i--;
-    //         }
+            // Remove the shot if it goes offscreen
+            if(shot.pos[1] < 0 || shot.pos[1] > canvas.height ||
+               shot.pos[0] > canvas.width || shot.pos[0] + shot.sprite.boxsize[0] + shot.sprite.boxpos[0]< 0) {
+                player.shots.splice(i, 1);
+                i--;
+            }
 
-    //         if(shot.sprite.done) {
-    //             player.shots.splice(i, 1);
-    //             i--;
-    //         }
-    //     }
+            if(shot.sprite.done) {
+                player.shots.splice(i, 1);
+                i--;
+            }
+        }
      })
     
-    // // update hit effects
-    // for(var i = 0; i < explosions.length; i++){
-    //     if(explosions[i].direction === "LEFT"){
-    //         explosions[i].sprite.flipped = true;
-    //     }else{
-    //         explosions[i].sprite.flipped = false;
-    //     }
+    // update hit effects
+    for(var i = 0; i < explosions.length; i++){
+        if(explosions[i].direction === "LEFT"){
+            explosions[i].sprite.flipped = true;
+        }else{
+            explosions[i].sprite.flipped = false;
+        }
 
-    //     explosions[i].sprite.update(dt);
+        explosions[i].sprite.update(dt);
 
-    //     if(explosions[i].sprite.done){
-    //         explosions.splice(i,1);
-    //         i--;
-    //     }
+        if(explosions[i].sprite.done){
+            explosions.splice(i,1);
+            i--;
+        }
 
-    // }
+    }
 
 }
 
@@ -1128,121 +1131,121 @@ function boxCollides(pos, size, pos2, size2) {
 function checkCollisions(dt) {
     checkPlayerBounds(dt);
 
-    // var playerPos = [];
-    // var playerSize = [];
+    var playerPos = [];
+    var playerSize = [];
 
-    // players.forEach(player => {
-    //     playerPos.push([player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]]);
-    //     playerSize.push(player.sprite.boxsize);
-    // })
+    players.forEach(player => {
+        playerPos.push([player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]]);
+        playerSize.push(player.sprite.boxsize);
+    })
 
-    // // both players must be touching AND neither can be invulnerable if damage is to occur
-    // if(boxCollides(playerPos[0], playerSize[0], playerPos[1], playerSize[1]) && (player1.invulnerable < Date.now() - invulnerableTime && player2.invulnerable < Date.now() - invulnerableTime)) {
-    //     if(player1.sprite.priority > player2.sprite.priority){
-    //         if(player1.sprite.priority > 0){
-    //             explosions.push({ 
-    //                     pos: midPlayer(player1, player2),
-    //                     direction: player1.direction,
-    //                     sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
-    //                    })
-    //             player2.damaged(player1);
-    //         }
-    //     }else if(player1.sprite.priority < player2.sprite.priority){
-    //         if(player2.sprite.priority > 0){
-    //             explosions.push({ 
-    //                     pos: midPlayer(player1, player2),
-    //                     direction: player2.direction,
-    //                     sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
-    //                    })
-    //             player1.damaged(player2);
-    //         }
-    //     }else{
-    //         if(player1.sprite.priority > 0){
-    //             explosions.push({ 
-    //                     pos: midPlayer(player1, player2, "up"),
-    //                     direction: player1.direction,
-    //                     sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
-    //                    })
-    //             explosions.push({ 
-    //                     pos: midPlayer(player1, player2, "down"),
-    //                     direction: player2.direction,
-    //                     sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
-    //                    })
-    //             player2.damaged(player1);
-    //             player1.damaged(player2);
-    //         }
-    //     } 
-    // }
+    // both players must be touching AND neither can be invulnerable if damage is to occur
+    if(boxCollides(playerPos[0], playerSize[0], playerPos[1], playerSize[1]) && (player1.invulnerable < Date.now() - invulnerableTime && player2.invulnerable < Date.now() - invulnerableTime)) {
+        if(player1.sprite.priority > player2.sprite.priority){
+            if(player1.sprite.priority > 0){
+                explosions.push({ 
+                        pos: midPlayer(player1, player2),
+                        direction: player1.direction,
+                        sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
+                       })
+                player2.damaged(player1);
+            }
+        }else if(player1.sprite.priority < player2.sprite.priority){
+            if(player2.sprite.priority > 0){
+                explosions.push({ 
+                        pos: midPlayer(player1, player2),
+                        direction: player2.direction,
+                        sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
+                       })
+                player1.damaged(player2);
+            }
+        }else{
+            if(player1.sprite.priority > 0){
+                explosions.push({ 
+                        pos: midPlayer(player1, player2, "up"),
+                        direction: player1.direction,
+                        sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
+                       })
+                explosions.push({ 
+                        pos: midPlayer(player1, player2, "down"),
+                        direction: player2.direction,
+                        sprite: new HitSprite('img/shot.png', [32 * 5, 0], [32, 32], [0, 0], [32, 32], normalSpeed, [0, 1], "horizontal", true, "dmg")
+                       })
+                player2.damaged(player1);
+                player1.damaged(player2);
+            }
+        } 
+    }
     
-    // // Run collision detection for all players and shots
-    // // Factor in hitbox size
-    // players.forEach(player => {
-    //     var shots = [];
-    //     var ownShots = [];
+    // Run collision detection for all players and shots
+    // Factor in hitbox size
+    players.forEach(player => {
+        var shots = [];
+        var ownShots = [];
 
-    //     if(player.who === 1){
-    //         shots = player2.shots;
-    //         ownShots = player1.shots;
+        if(player.who === 1){
+            shots = player2.shots;
+            ownShots = player1.shots;
 
-    //     }else{
-    //         shots = player1.shots;
-    //         ownShots = player2.shots;
-    //     }
+        }else{
+            shots = player1.shots;
+            ownShots = player2.shots;
+        }
 
-    //     for(var i=0; i<shots.length; i++) {
+        for(var i=0; i<shots.length; i++) {
 
-    //         var pos = [shots[i].pos[0] + shots[i].sprite.boxpos[0], shots[i].pos[1] + shots[i].sprite.boxpos[1]];
-    //         var size = shots[i].sprite.boxsize;
+            var pos = [shots[i].pos[0] + shots[i].sprite.boxpos[0], shots[i].pos[1] + shots[i].sprite.boxpos[1]];
+            var size = shots[i].sprite.boxsize;
 
-    //         var playerPos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
-    //         var playerSize = player.sprite.boxsize;
+            var playerPos = [player.pos[0] + player.sprite.boxpos[0], player.pos[1] + player.sprite.boxpos[1]];
+            var playerSize = player.sprite.boxsize;
 
-    //         for(var j=0; j<ownShots.length; j++) {
-    //             var pos2 = [ownShots[j].pos[0] + ownShots[j].sprite.boxpos[0], ownShots[j].pos[1] + ownShots[j].sprite.boxpos[1]];
-    //             var size2 = ownShots[j].sprite.boxsize;
+            for(var j=0; j<ownShots.length; j++) {
+                var pos2 = [ownShots[j].pos[0] + ownShots[j].sprite.boxpos[0], ownShots[j].pos[1] + ownShots[j].sprite.boxpos[1]];
+                var size2 = ownShots[j].sprite.boxsize;
 
-    //             if(shots[i].sprite.state === "moving" && ownShots[j].sprite.state === "moving" &&boxCollides(pos, size, pos2, size2)) {
-    //                 // Remove the shots if they collide
-    //                 shots[i].sprite.state = "hit";
-    //                 ownShots[j].sprite.state = "hit";
-    //             }
-    //         }
+                if(shots[i].sprite.state === "moving" && ownShots[j].sprite.state === "moving" &&boxCollides(pos, size, pos2, size2)) {
+                    // Remove the shots if they collide
+                    shots[i].sprite.state = "hit";
+                    ownShots[j].sprite.state = "hit";
+                }
+            }
 
-    //         if(boxCollides(pos, size, playerPos, playerSize) && (player.invulnerable < Date.now() - invulnerableTime)){
+            if(boxCollides(pos, size, playerPos, playerSize) && (player.invulnerable < Date.now() - invulnerableTime)){
 
-    //             if(!shots[i]){break;}   // strange bug
+                if(!shots[i]){break;}   // strange bug
 
-    //             if(shots[i].sprite.state === "hit"){break;}
+                if(shots[i].sprite.state === "hit"){break;}
 
-    //             if(shots[i] && (player.sprite.priority < shots[i].sprite.priority || player.sprite.state === "crouch" || player.sprite.state === "supershot")){
-    //                 player.damaged(shots[i]);
+                if(shots[i] && (player.sprite.priority < shots[i].sprite.priority || player.sprite.state === "crouch" || player.sprite.state === "supershot")){
+                    player.damaged(shots[i]);
 
-    //             }else if(player.sprite.priority > shots[i].sprite.priority){
-    //                 // REFLECT TIME!
+                }else if(player.sprite.priority > shots[i].sprite.priority){
+                    // REFLECT TIME!
 
-    //                 var whichShot = "img/shot.png";
-    //                 if(shots[i].speed > 220){
-    //                     whichShot = "img/shot2.png"
-    //                 }
-    //                 if(shots[i].speed > 320){
-    //                     whichShot = "img/shot3.png"
-    //                 }
-    //                 player.shots.push({ 
-    //                     pos: [shots[i].pos[0], shots[i].pos[1]],
-    //                     direction: player.direction,
-    //                     sprite: new Sprite(whichShot, [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3], "horizontal", false, "moving"),
-    //                     fireTime: Date.now() - shotChargeTime,
-    //                     speed: shots[i].speed+35
-    //                    });
-    //                 shots[i].sprite.state = "hit";
+                    var whichShot = "img/shot.png";
+                    if(shots[i].speed > 220){
+                        whichShot = "img/shot2.png"
+                    }
+                    if(shots[i].speed > 320){
+                        whichShot = "img/shot3.png"
+                    }
+                    player.shots.push({ 
+                        pos: [shots[i].pos[0], shots[i].pos[1]],
+                        direction: player.direction,
+                        sprite: new Sprite(whichShot, [64 * 4, 0], [64, 64], [22, 13], [24, 38], normalSpeed * 1.5, [0, 1, 2, 3], "horizontal", false, "moving"),
+                        fireTime: Date.now() - shotChargeTime,
+                        speed: shots[i].speed+35
+                       });
+                    shots[i].sprite.state = "hit";
 
-    //                 framesToSkip = 10;
+                    framesToSkip = 10;
                     
-    //             }
-    //         }
+                }
+            }
 
-    //     }
-    // })
+        }
+    })
 }
 
 function checkPlayerBounds(dt) {
@@ -1254,8 +1257,8 @@ function checkPlayerBounds(dt) {
             if(player.capacity > bounceCapacity){
                 player.velocityX = -player.velocityX/4;
                 if(player.sprite.state === "hurt" && Date.now() > shakeUntil+ shakeCd && player.velocityX > groundBounceVelocity/16){
-
                     shakeUntil = Date.now() + shakeDuration;
+                	//console.log(shakeUntil)
                 }
             }else{
                 player.velocityX = 0;
@@ -1321,227 +1324,103 @@ function checkPlayerBounds(dt) {
 
 
 // // Draw everything
-// function render() {
+function render() {
 
-//     // parallax background rendering first
-//     var bg1 = resources.get('img/parallax-forest-front-trees.png');
-//     var bg2 = resources.get('img/parallax-forest-middle-trees.png');
-//     var bg3 = resources.get('img/parallax-forest-lights.png');
-//     var bg4 = resources.get('img/parallax-forest-back-trees.png');
-
-//     var bgMidPt = slowMidPt;
-
-//     ctx.save();
-//     ctx.translate(-bgMidPt/8 % 272, 0);
-//     for (var i = -1; i < 2; i++) {
-//         ctx.drawImage(bg4, i * 272, 0);
-//     }
-//     ctx.restore();
     
-//     ctx.save();
-//     ctx.drawImage(bg3, 0, 0);
-//     ctx.restore();
-
-//     ctx.save();
-//     ctx.translate(-bgMidPt/6 % 272, 0);
-//     for (var i = -1; i < 2; i++) {
-//         ctx.drawImage(bg2, i * 272, 0);
-//     }
-//     ctx.restore();
-
-//     ctx.save();
-//     ctx.translate(-bgMidPt/2 % 272, 0);
-//     for (var i = -1; i < 2; i++) {
-//         ctx.drawImage(bg1, i * 272, 0);
-//     }
-//     ctx.restore();
-
-//     if(Math.floor(slowMidPt) < Math.floor(midPt)){
-//         slowMidPt += 1; 
-//     }else if(Math.floor(slowMidPt) > Math.floor(midPt)){
-//         slowMidPt -= 1; 
-//     }
-
-//     // render victor/loser screen
-//     if(drawNow){
-//         ctx.save();
-//         if(whoLostLast === 2){
-//             ctx.drawImage(resources.get("img/p1w.png"), 50, 60)
-//         }else{
-//             ctx.drawImage(resources.get("img/p2w.png"), 50, 60)
-//         }
-//         ctx.drawImage(resources.get("img/playagain.png"), 95,100);
-//         ctx.restore();
-//     }
-
-//     // flip direction if opponent on other side
-//     if(player1.pos[0] < player2.pos[0]){
-//         player1.direction = 'RIGHT';
-//         player2.direction = 'LEFT';
-//     }else{
-//         player1.direction = 'LEFT';
-//         player2.direction = 'RIGHT';
-//     }
-
-//     // flip sprites of each player as per direction
-//     players.forEach(player => {
-//         if(player.direction === 'LEFT'){
-//             player.sprite.flipped = true;
-//         }else{  player.sprite.flipped = false;}
-//     })
+    var bgMidPt = slowMidPt;
 
 
-//     renderEntity(player1);
-//     renderEntity(player2);
+    if(Math.floor(slowMidPt) < Math.floor(midPt)){
+        slowMidPt += 1; 
+    }else if(Math.floor(slowMidPt) > Math.floor(midPt)){
+        slowMidPt -= 1; 
+    }
 
-//     renderEntities(player1.shots);
-//     renderEntities(player2.shots);
-//     renderEntities(explosions);
+    // flip direction if opponent on other side
+    if(player1.pos[0] < player2.pos[0]){
+        player1.direction = 'RIGHT';
+        player2.direction = 'LEFT';
+    }else{
+        player1.direction = 'LEFT';
+        player2.direction = 'RIGHT';
+    }
 
-//     // render hp
-//     renderHealth(player1);
-//     renderHealth(player2, true);
+    // flip sprites of each player as per direction
+    players.forEach(player => {
+        if(player.direction === 'LEFT'){
+            player.sprite.flipped = true;
+        }else{  player.sprite.flipped = false;}
+    })
 
-//     // render capacity
-//     var stableCp1 = Math.floor(player1.lastStableCp - 1);
-//     if(player1.lastStableCp >= player1.capacity - startCapacity){
-//         player1.lastStableCp = player1.capacity - startCapacity;
-//     }
-//     player1.lastStableCp += 1.5;
-//     var stableCp2 = Math.floor(player2.lastStableCp - 1);
-//     if(player2.lastStableCp >= player2.capacity - startCapacity){
-//         player2.lastStableCp = player2.capacity - startCapacity;
-//     }
-//     player2.lastStableCp += 1.5;
+
+    renderEntity(player1);
+    renderEntity(player2);
+
+    renderEntities(player1.shots);
+    renderEntities(player2.shots);
+    renderEntities(explosions);
+
     
-//     ctx.save();
-//     ctx.fillStyle = "white";
-//     ctx.font = "10px venus";
-//     ctx.rotate(-90*Math.PI/180);
-//     ctx.fillText(`${stableCp1}%`, -70, 15);
-//     ctx.restore();
-//     ctx.save();
-//     ctx.fillStyle = "white";
-//     ctx.font = "10px venus";
-//     ctx.rotate(90*Math.PI/180);
-//     ctx.fillText(`${stableCp2}%`, 40, -257);
-//     ctx.restore();
-// };
+};
 
-// function renderHealth(entity, flipped) {
-//     var barLen = 72;
 
-//     var amt = entity.health/maxHealth * barLen;
 
-//     var stableAmt = entity.lastStableHp/maxHealth * barLen;
-//     if(entity.lastStableHp <= entity.health){
-//         entity.lastStableHp = entity.health;
-//     }
+function renderEntities(list) {
+    for(var i=0; i<list.length; i++) {
+        //ctx.save();
+        //ctx.translate(list[i].pos[0], list[i].pos[1]);
+        //  this will check if enough time has passed before rendering shot
+        if(list[i].sprite.state === "dmg" || Date.now() - list[i].fireTime > shotChargeTime){
+            list[i].sprite.render(null);
+        }
+        //ctx.restore();
+    }    
+}
 
-//     ctx.save();
-//     if(!flipped){
-//         ctx.translate(30, 15);
-//         ctx.drawImage(resources.get("img/empty.png"),0,0,72,6,0,0,72,6);
-//         if(entity.sprite.state === "dead" || entity.invulnerable < Date.now() - invulnerableTime){
-//             ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
-//             entity.lastStableHp -= .8;
-//         }else{
-//             ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
-//         }
-//         ctx.drawImage(resources.get("img/health.png"),0,0,amt,6,0,0,amt,6);
-//     }else{
-//         ctx.translate(240, 15);
-//         ctx.scale(-1, 1);
-//         ctx.drawImage(resources.get("img/empty.png"),0,0,72,6,0,0,72,6);
-//         if(entity.sprite.state === "dead" || entity.invulnerable < Date.now() - invulnerableTime){
-//             ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
-//             entity.lastStableHp -= .8;
-//         }else{
-//             ctx.drawImage(resources.get("img/damage.png"),0,0,stableAmt,6,0,0,stableAmt,6);
-//         }
-//         ctx.drawImage(resources.get("img/health.png"),0,0,amt,6,0,0,amt,6);
-//     }
-//     ctx.restore();
-// };
+function renderEntity(entity, flipped) {
+    //ctx.save();
+    //ctx.translate(entity.pos[0], entity.pos[1]);
+    entity.sprite.render(null, flipped);
+   // ctx.restore();
+}
 
-// function renderEntities(list) {
-//     for(var i=0; i<list.length; i++) {
-//         ctx.save();
-//         ctx.translate(list[i].pos[0], list[i].pos[1]);
-//         //  this will check if enough time has passed before rendering shot
-//         if(list[i].sprite.state === "dmg" || Date.now() - list[i].fireTime > shotChargeTime){
-//             list[i].sprite.render(ctx);
-//         }
-//         ctx.restore();
-//     }    
-// }
+// Game over
+function gameOver(player) {
+    if(gameState !== "over"){
+        gameStateSet = Date.now();
+        gameState = "over";
 
-// function renderEntity(entity, flipped) {
-//     ctx.save();
-//     ctx.translate(entity.pos[0], entity.pos[1]);
-//     entity.sprite.render(ctx, flipped);
-//     ctx.restore();
-// }
+        setTimeout(()=>{
+            drawNow = true;
+            whoLostLast = player.who;
+        },1500);
+    }
 
-// // Game over
-// function gameOver(player) {
-//     if(gameState !== "over"){
-//         gameStateSet = Date.now();
-//         gameState = "over";
+    player.sprite.state = "dead"; 
+    disableControls = true;
+}
 
-//         setTimeout(()=>{
-//             drawNow = true;
-//             whoLostLast = player.who;
-//         },1500);
-//     }
 
-//     player.sprite.state = "dead"; 
-//     disableControls = true;
-// }
+// Reset game to original state
+function reset(bool) {
+    disableControls = false;
+    drawNow = false;
+    if(bool){
+        gameState= "menu";
+    }else{
+        gameState = "play";
+    }
 
-// // function fadeOut(){
-// //      var steps = 50;
-// //      var r = 50;
-// //      var g = 100;
-// //      var b = 50;
+    whoLostLast = 0;
 
-// //      var dr = (255 - r) / steps,
-// //         dg = (255 - g) / steps,
-// //         db = (255 - b) / steps,
-// //         i = 0,
-// //         interval = setInterval(function() {
-// //             ctx.fillStyle = 'rgb(' + Math.round(r + dr * i) + ','
-// //                                    + Math.round(g + dg * i) + ','
-// //                                    + Math.round(b + db * i) + ')';
-// //             ctx.fillRect(0, 0, canvas.width, canvas.height);
-// //             i++;
-// //             if(i === steps) {
-// //                 clearInterval(interval);
-// //             }
-// //         }, 60);
-// // }
+    players.forEach(player => {
+        player.health = maxHealth;     
+        player.capacity = startCapacity;
+        player.sprite.state = "idle"  
+    })
 
-// // Reset game to original state
-// function reset(bool) {
-//     disableControls = false;
-//     drawNow = false;
-//     if(bool){
-//         gameState= "menu";
-//     }else{
-//         gameState = "play";
-//     }
-
-//     whoLostLast = 0;
-
-//     players.forEach(player => {
-//         player.health = maxHealth;     
-//         player.capacity = startCapacity;
-//         player.sprite.state = "idle"  
-//     })
-
-//     player1.pos = [50, canvas.height - groundHeight];
-//     player2.pos = [canvas.width - 100, canvas.height - groundHeight];
-// };
+    player1.pos = [50, canvas.height - groundHeight];
+    player2.pos = [canvas.width - 100, canvas.height - groundHeight];
+};
 
 exports.handleInput = handleInput;
-exports.gameState = {player2}

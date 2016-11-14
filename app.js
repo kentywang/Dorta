@@ -57,7 +57,7 @@ function broadcast() {
 
 // inputs
 function input(action, pressedKeys, playerNo, dt) {
-	console.log(action, pressedKeys,playerNo)
+	//console.log(action, pressedKeys,playerNo)
   engine[action](pressedKeys, playerNo, dt);
 }
 var p1, p2;
@@ -67,20 +67,33 @@ io.sockets.on('connection', function(socket) {
 	console.log("A user has connected")
 
   socket.on('joinGame', function(data) {
-  	if(!p1){p1 = socket.id;}
-  	console.log(p1)
-  	if(!p2){p2 = socket.id;}
+  	if(!p1){
+  		p1 = socket.id;
+  		console.log("p1 is", p1)
+  	}
+  	else if(!p2 && p1 !== socket.id){
+  		p2 = socket.id;
+  		console.log("p2 is", p1)
+  	}
   });
 
   socket.on('disconnect', function() {
     //if(!socket.game) return;
-    if(socket.id === p1){ p1 = 0};
-    if(socket.id === p2){ p2 = 0};
+    if(socket.id === p1){ 
+    	console.log(p1, "disconnected")
+    	p1 = 0};
+    if(socket.id === p2){ 
+    	console.log(p2, "disconnected")
+    	p2 = 0};
+
+ 	io.emit('comeJoin');
     //socket.game.sockets = _.without(socket.game.sockets, socket);
   });
 
 
   socket.on('handleInput', function(pressedKeys, dt) {
+  		// console.log(socket.id)
+  	
   	if(socket.id === p1){
   	  input('handleInput', pressedKeys, 1, dt);
   	}
