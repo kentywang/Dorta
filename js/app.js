@@ -186,12 +186,15 @@ var player2 = {
    socket = io.connect('/');
 
     socket.on('connect', function() {
-      socket.emit('joinGame');
+      setInterval(()=>{
+          socket.emit('joinGame');  
+      }, 5000)
     });
 
-    socket.on('comeJoin', function(){
-        socket.emit('joinGame');
-    })
+    // socket.on('comeJoin', function(){
+    //   console.log("joining game...")
+    //     socket.emit('joinGame');
+    // })
 
     socket.on('gameState', function(state) {
 

@@ -86,7 +86,7 @@ io.sockets.on('connection', function(socket) {
     	console.log(p2, "disconnected")
     	p2 = 0};
 
- 	io.emit('comeJoin');
+ 	  //io.emit('comeJoin');
     //socket.game.sockets = _.without(socket.game.sockets, socket);
   });
 
