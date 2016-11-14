@@ -27,12 +27,12 @@ app.use("/img", express.static(__dirname + "/img"));
 
 app.get('/', function(req, res) { res.render('index'); });
 
-app.post('/join', function(req, res) {
-	console.log(req.body)
-  var room = req.body.room;
-  if(!room) room = "public";
-  res.redirect("/game/" + room);
-});
+// app.post('/join', function(req, res) {
+// 	//console.log(req.body)
+//   var room = req.body.room;
+//   if(!room) room = "public";
+//   res.redirect("/game/" + room);
+// });
 
 app.get("/game/:id", function(req, res) {
   getGame(req.params.id);
@@ -44,124 +44,74 @@ server.listen(process.env.PORT || 8000);
 // sockets
 function setBroadcast(game) { game.shouldBroadcast = true; }
 
-function broadcast(game) {
-  if(!game.shouldBroadcast) return;
-
-  emit(game.id, 'gamestate', {
+function broadcast() {
+ // if(!game.shouldBroadcast) return;
+ //console.log(engine["gameState"])
+  io.emit('gameState', engine["gameState"])
     // frame: engine.frame(),
     // players: engine.players(game),
-  });
+  //);
 
-  game.shouldBroadcast = false;
-}
-
-function emit(gameId, message, args) {
-  var game = getGame(gameId);
-  _.each(game.sockets, function(socket) {
-    socket.emit(message, args);
-  });
-}
-
-function getGame(gameId) {
-  if(!games[gameId]) {
-    games[gameId] = new Game(gameId);
-    games[gameId].shouldBroadcast = true;
-  }
-
-  return games[gameId];
+  //game.shouldBroadcast = false;
 }
 
 // inputs
-function input(direction, gameId, playerId, playerName) {
-  var game = getGame(gameId);
-  engine[direction](game, playerId, playerName);
-  setBroadcast(game);
+function input(action, pressedKeys, playerNo, dt) {
+	console.log(action, pressedKeys,playerNo)
+  engine[action](pressedKeys, playerNo, dt);
 }
+var p1, p2;
 
 io.sockets.on('connection', function(socket) {
 
 	console.log("A user has connected")
 
   socket.on('joinGame', function(data) {
-    var game = getGame(data.gameId);
-    socket.game = game;
-    game.sockets.push(socket);
-    setBroadcast(game);
+  	if(!p1){p1 = socket.id;}
+  	console.log(p1)
+  	if(!p2){p2 = socket.id;}
   });
 
   socket.on('disconnect', function() {
-    if(!socket.game) return;
-
-    socket.game.sockets = _.without(socket.game.sockets, socket);
+    //if(!socket.game) return;
+    if(socket.id === p1){ p1 = 0};
+    if(socket.id === p2){ p2 = 0};
+    //socket.game.sockets = _.without(socket.game.sockets, socket);
   });
 
-  // checking if xist rooms
- 	setInterval(()=>console.log(games), 10000)
 
-  socket.on('up', function(data) {
-  	io.emit("gameState", {player1 : 20})
-  	console.log("emitted")
-    //input('up', data.gameId, data.playerId, data.playerName);
-  });
-
-  socket.on('down', function(data) {
-    input('down', data.gameId, data.playerId, data.playerName);
-  });
-
-  socket.on('left', function(data) {
-    input('left', data.gameId, data.playerId, data.playerName);
-  });
-
-  socket.on('right', function(data) {
-    input('right', data.gameId, data.playerId, data.playerName);
-  });
-
-  socket.on('jump', function(data) {
-    input('jump', data.gameId, data.playerId, data.playerName);
-  });
-
-  socket.on('basic', function(data) {
-    input('jump', data.gameId, data.playerId, data.playerName);
-  });
-
-  socket.on('super', function(data) {
-    input('jump', data.gameId, data.playerId, data.playerName);
-  });
-
-  // will probably need to do the key combinations too
-
-  // socket.on('sendchat', function(data) {
-  //   emit(data.session.gameId, 'receivechat', {
-  //     name: data.session.playerName,
-  //     message: data.message
-  //   });
-  // });
+  socket.on('handleInput', function(pressedKeys, dt) {
+  	if(socket.id === p1){
+  	  input('handleInput', pressedKeys, 1, dt);
+  	}
+  	else if(socket.id === p2){
+  	  input('handleInput', pressedKeys, 2, dt);
+  }})
 });
 
-// //var framesPerSecondInMilliseconds = 1000.0 / engine.fps;
-// var syncRate = 0;
+var framesPerSecondInMilliseconds = 1000.0 / 60;
+var syncRate = 0;
 
-// setInterval(function() {
-//   syncRate += 1;
+setInterval(function() {
+  syncRate += 1;
 
-//   for(var key in games) {
-//     var game = games[key];
-//     var botAdded = bot.add(game);
-//     var actionMade = bot.tick(game);
-//     var tickResult = engine.tick(game);
-//     var occasionallySync = (syncRate % 300) == 0;
+ // for(var key in games) {
+    //var game = engine[key];
+    // var botAdded = bot.add(game);
+    // var actionMade = bot.tick(game);
+    // var tickResult = engine.tick(game);
+    // var occasionallySync = (syncRate % 300) == 0;
 
-//     if(occasionallySync) syncRate = 0;
+    // if(occasionallySync) syncRate = 0;
 
-//     if(actionMade ||
-//        botAdded ||
-//        tickResult.deathsOccurred ||
-//        occasionallySync) {
-//       setBroadcast(game);
-//     }
+    // if(actionMade ||
+    //    botAdded ||
+    //    tickResult.deathsOccurred ||
+    //    occasionallySync) {
+    //   setBroadcast(game);
+    // }
+    broadcast();
 
-//     broadcast(game);
-
-//     //processAchievements(game, tickResult);
-//   }
-// }, framesPerSecondInMilliseconds);
+    //processAchievements(game, tickResult);
+  //}
+}, framesPerSecondInMilliseconds);

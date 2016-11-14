@@ -12,6 +12,7 @@ function Sprite(url, pos, size, boxpos, boxsize, speed, frames, dir, once, state
     this.url = url;
     this.dir = dir || 'horizontal';
     this.once = once;
+    //console.log("?????????????")
 };
 
 Sprite.prototype.update = function(dt) {
@@ -64,6 +65,7 @@ Sprite.prototype.render = function(ctx) {
 
     var x = this.pos[0];
     var y = this.pos[1];
+
     if(this.dir == 'vertical') {
         y += frame * this.size[1];
     }
@@ -294,11 +296,11 @@ PlayerSprite.prototype.update = function(dt) {
 PlayerSprite.prototype.render = function(ctx) {
     var frame;
 
+console.log(this.speed)
     if(this.speed > 0) {
         var max = this.frames.length;
         var idx = Math.floor(this._index);
         frame = this.frames[idx % max];
-
         if(this.once && idx >= max) {
             this.done = true;
             return;
@@ -317,7 +319,6 @@ PlayerSprite.prototype.render = function(ctx) {
 
     var x = this.pos[0];
     var y = this.pos[1];
-
     if(this.dir == 'vertical') {
         y += frame * this.size[1];
     }
@@ -327,6 +328,7 @@ PlayerSprite.prototype.render = function(ctx) {
     if(this.flipped){
         ctx.save();
         ctx.scale(-1, 1);
+
         ctx.drawImage(resources.get(this.url),
                   x, y,
                   this.size[0], this.size[1],

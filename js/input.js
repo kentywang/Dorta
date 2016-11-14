@@ -43,6 +43,9 @@
     window.input = {
         isDown: function(key) {
             return pressedKeys[key.toUpperCase()];
+        },
+        getAll: function(){
+            return pressedKeys;
         }
     };
 })();

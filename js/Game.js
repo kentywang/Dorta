@@ -7,9 +7,10 @@ function Game(gameId) {
   this.players = [ ];
   this.sockets = [ ];
 
-  // this.getPlayer = function (playerId) {
-  //   return _.findWhere(this.players, { id: playerId });
-  // };
+  this.getPlayer = function (playerId) {
+    return player;
+    //return _.findWhere(this.players, { id: playerId });
+  };
 
   // this.centerStage = function() {
   //   return world.stageBoundary.center;
