@@ -35,3 +35,6 @@ The game will then be accessible at `http://localhost:8000`.
 
 ### Help
 Create an [issue](https://github.com/quirkycorgi/dorta/issues) if you need help.
+
+### Credits
+Thank you to [dogchicken](http://opengameart.org/users/dogchicken) for the cat fighter sprite sheets, and to [ansimuz](http://opengameart.org/users/ansimuz) for the forest background.
