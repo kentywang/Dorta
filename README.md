@@ -9,6 +9,7 @@ Inspired by Super Smash Bros, Street Fighter, Legend of Zelda, and Dragon Ball Z
 
 ### Live Demo
 A playable, offline, single-machine build of Dorta can be found [here](https://dorta.herokuapp.com). Dorta is Chrome only.
+
 To control player 1, use the arrow keys to move, the spacebar to jump, and the Q & W keys for attacks. To control player 2, use the UNEI keys to move, the C key to jump, and the 1 & 2 keys for attacks.
 
 To play the online version of Dorta, please checkout the 'socket' branch of this repository and follow the installation instructions below.
