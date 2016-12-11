@@ -1,6 +1,6 @@
 ##Dorta
 
-[![Live Demo](https://img.shields.io/badge/demo-online-green.svg)](http://dorta.herokuapp.com)[![Jenkins](https://img.shields.io/jenkins/s/https/jenkins.qa.ubuntu.com/precise-desktop-amd64_default.svg)]()[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/quirkycorgi/Dorta/blob/master/LICENSE)
+[![Live Demo](https://img.shields.io/badge/demo-online-green.svg)](http://dorta.herokuapp.com) [![Jenkins](https://img.shields.io/jenkins/s/https/jenkins.qa.ubuntu.com/precise-desktop-amd64_default.svg)]() [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/quirkycorgi/Dorta/blob/master/LICENSE)
 
 ### Online Browser Fighting Game 
 Inspired by Super Smash Bros, Street Fighter, Legend of Zelda, and Dragon Ball Z, Dorta is an online multiplayer fighting game made during a 4-day hackathon.
