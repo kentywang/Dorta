@@ -1,11 +1,11 @@
 ## Dorta
 
-[![Jenkins](https://img.shields.io/jenkins/s/https/jenkins.qa.ubuntu.com/precise-desktop-amd64_default.svg)]() [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/quirkycorgi/Dorta/blob/master/LICENSE)
+[![Jenkins](https://img.shields.io/jenkins/s/https/jenkins.qa.ubuntu.com/precise-desktop-amd64_default.svg)]() [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/kentywang/Dorta/blob/master/LICENSE)
 
 ### Online Browser Fighting Game 
 Dorta is an online multiplayer fighting game made for a hackathon.
 
-![](https://github.com/quirkycorgi/Dorta/blob/master/img/Dorta.gif)
+![](https://github.com/kentywang/Dorta/blob/master/img/Dorta.gif)
 
 ### Architecture
 For the online-based 'socket' branch of this repository, Dorta is built on [Node.js](https://nodejs.org/) using [Socket.IO](http://socket.io/) for client-server interaction. The game logic is run server-side, with clients sending their input requests to the server and receiving game states to render. A custom game engine was built using the Canvas API to render the visuals on-screen. 
