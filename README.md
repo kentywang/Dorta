@@ -1,9 +1,6 @@
 ## Dorta
-
-[![Jenkins](https://img.shields.io/jenkins/s/https/jenkins.qa.ubuntu.com/precise-desktop-amd64_default.svg)]() [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/kentywang/Dorta/blob/master/LICENSE)
-
-### Online Browser Fighting Game 
-Dorta is an online multiplayer fighting game made for a hackathon.
+This is an online multiplayer fighting game made for a hackathon.
+It’s also an amusing preservation of my programming prowess back in the day. 🙈
 
 ![](https://github.com/kentywang/Dorta/blob/master/img/Dorta.gif)
 
