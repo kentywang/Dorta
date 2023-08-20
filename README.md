@@ -1,6 +1,5 @@
 ## Dorta
 This is an online multiplayer fighting game made for a hackathon.
-It’s also an amusing preservation of my programming prowess back in the day. 🙈
 
 ![](https://github.com/kentywang/Dorta/blob/master/img/Dorta.gif)
 
@@ -20,6 +19,7 @@ When the dependencies have been installed, run the server with the following com
 ```
 npm start
 ```
+To just play locally, open up the `index.html` file in a browser.
 
 The game will then be accessible at `http://localhost:8000`. 
 
